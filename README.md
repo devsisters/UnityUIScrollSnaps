@@ -35,8 +35,8 @@ These instructions will make the Components in this project available to you ins
 3. You can add Components to all ready created gameobjects by:
 	1. Selecting the gameobject you want to add the component to.
 	2. In the Inspector window hitting the "Add Component" button and then either:
-		A) Searching for the component.
-		B) Going to UI > Scroll Snaps.
+		* Searching for the component.
+		* Going to UI > Scroll Snaps.
 4. You can add Components to all ready created gameobjects by:
 	1. Selecting the gameobject you want to add the component to.
 	2. Draggint the Component from the Project window into the Inspector window.
@@ -67,7 +67,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * **Beks_Omega** - *Initial work*
 
-See also the list of [contributors](https://bitbucket.org/beksomega/unityuiscrollsnaps/contributors) who participated in this project.
+See also the list of [contributors](https://bitbucket.org/beksomega/unityuiscrollsnaps/src/master/contributors.txt) who participated in this project.
 
 ## License
 
