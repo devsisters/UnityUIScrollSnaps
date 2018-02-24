@@ -12,11 +12,11 @@ These instructions will make the Components in this project available to you ins
 ### Installing
 
 Download entire repository:
-1. Dowload: /Download link here/
-2. Open the Unity project you would like to import your newly downloaded assets into.
-3. On the top menu bar go to Assets > Import Package > Custom Package.
-4. Open the downloaded assets.
-5. Select Import on the new dialog window.
+	1. Dowload: /Download link here/
+	2. Open the Unity project you would like to import your newly downloaded assets into.
+	3. On the top menu bar go to Assets > Import Package > Custom Package.
+	4. Open the downloaded assets.
+	5. Select Import on the new dialog window.
 
 Downloading specific components:
 1. On Bitbucket go to Source > Scripts.
