@@ -12,7 +12,7 @@ These instructions will make the Components in this project available to you ins
 
 ### Download entire repository:
 
-1.	Dowload: //Add Download Link//
+1.	Dowload: [Asset Package](https://bitbucket.org/beksomega/unityuiscrollsnaps/downloads/UnityUIScrollSnaps.unitypackage)
 2.	Open the Unity project you would like to import your newly downloaded assets into.
 3.	On the top menu bar go to Assets > Import Package > Custom Package.
 4.	Open the downloaded assets.
@@ -53,9 +53,9 @@ See also the list of [contributors](https://bitbucket.org/beksomega/unityuiscrol
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the MIT License - see the [LICENSE.md](https://bitbucket.org/beksomega/unityuiscrollsnaps/src/master/LICENSE) file for details
 
 ## Acknowledgments
 
 * Thank you to the Unity team for making the UI code available: [UI Repository](https://bitbucket.org/Unity-Technologies/ui/overview).
-* Scroller and Interpolator code is based on code from the [Android Open Source Project](https://source.android.com/)
+* Scroller and Interpolator code is based on code from the [Android Open Source Project](https://source.android.com/) Licensed under [Apache License](http://www.apache.org/licenses/LICENSE-2.0)
