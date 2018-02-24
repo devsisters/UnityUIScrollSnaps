@@ -5,10 +5,10 @@ but it doesn't have to do with Scroll Snaps consider contributing to the [Unity 
 
 ##Pull Request Process
 
-1. Make sure the names of any new scripts match the standard used in other scripts.
-2. Put any new scripts in the **UnityEngine.UI.ScrollSnaps** namespace so that they do not interfear with other developments.
-3. Remove any unused "using *blank*" statements.
-4. Add a coment at the top of any new Component script that tells you it's dependencies & where to find them. E.g:
+* Make sure the names of any new scripts match the standard used in other scripts.
+* Put any new scripts in the **UnityEngine.UI.ScrollSnaps** namespace so that they do not interfear with other developments.
+* Remove any unused "using *blank*" statements.
+* Add a coment at the top of any new Component script that tells you it's dependencies & where to find them. E.g:
 
 	```C#
 	//Dependencies:
@@ -16,10 +16,10 @@ but it doesn't have to do with Scroll Snaps consider contributing to the [Unity 
 	// - DirectionalScrollSnapEditor: Source > Editor (optional)
 	```
 
-5. Add **MenuItem** and **AddCompontentMenu** atributes to any new Components.
-6. Add/Update example projects under Source > Examples.
-7. Consider adding a custom editor to any new components (optional but awesome).
-8. Add yourself to the contributors file. Source > contributors.
-9. Put up your pull request.
-10. Wait for any feedback.
-11. Pull request will be merged by BeksOmega.
+* Add **MenuItem** and **AddCompontentMenu** atributes to any new Components.
+* Add/Update example projects under Source > Examples.
+* Consider adding a custom editor to any new components (optional but awesome).
+* Add yourself to the contributors file. Source > contributors.
+* Put up your pull request.
+* Wait for any feedback.
+* Pull request will be merged by BeksOmega.
