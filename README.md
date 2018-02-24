@@ -41,27 +41,9 @@ These instructions will make the Components in this project available to you ins
 	1. Selecting the gameobject you want to add the component to.
 	2. Draggint the Component from the Project window into the Inspector window.
 
-## Deployment
-
-//What's deployment?
-
-## Built With
-
-//Do I need this?
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](https://bitbucket.org/beksomega/unityuiscrollsnaps/src/master/CONTRIBUTING.md) for details on the process for submitting pull requests.
-
-## Versioning
-
-//Do I need this?
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
 
 ## Authors
 
@@ -71,10 +53,9 @@ See also the list of [contributors](https://bitbucket.org/beksomega/unityuiscrol
 
 ## License
 
-//What license should I use?
-
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 
 * Thank you to the Unity team for making the UI code available: [UI Repository](https://bitbucket.org/Unity-Technologies/ui/overview).
+* Scroller and Interpolator code is based on code from the [Android Open Source Project](https://source.android.com/)
