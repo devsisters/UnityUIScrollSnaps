@@ -10,11 +10,11 @@ but it doesn't have to do with Scroll Snaps consider contributing to the [Unity 
 3. Remove any unused "using *blank*" statements.
 4. Add a coment at the top of any new Component script that tells you it's dependencies & where to find them. E.g:
 
-```
-//Dependencies:
-// - Scroller: Source > Scripts > HelperClasses
-// - DirectionalScrollSnapEditor: Source > Editor (optional)
-```
+	```C#
+	//Dependencies:
+	// - Scroller: Source > Scripts > HelperClasses
+	// - DirectionalScrollSnapEditor: Source > Editor (optional)
+	```
 
 5. Add **MenuItem** and **AddCompontentMenu** atributes to any new Components.
 6. Add/Update example projects under Source > Examples.
