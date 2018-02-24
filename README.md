@@ -30,14 +30,14 @@ These instructions will make the Components in this project available to you ins
 
 ### Adding To Project
 
-1. Components can be added through the Hierarchy window through Create > UI > ScrollSnaps.
-2. Components can be added through the top menu bar by going to Gameobjects > UI > ScrollSnaps.
-3. You can add Components to all ready created gameobjects by:
+* Components can be added through the Hierarchy window through Create > UI > ScrollSnaps.
+* Components can be added through the top menu bar by going to Gameobjects > UI > ScrollSnaps.
+* You can add Components to all ready created gameobjects by:
 	1. Selecting the gameobject you want to add the component to.
 	2. In the Inspector window hitting the "Add Component" button and then either:
 		* Searching for the component.
 		* Going to UI > Scroll Snaps.
-4. You can add Components to all ready created gameobjects by:
+* You can add Components to all ready created gameobjects by:
 	1. Selecting the gameobject you want to add the component to.
 	2. Draggint the Component from the Project window into the Inspector window.
 
