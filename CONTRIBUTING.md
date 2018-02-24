@@ -1,7 +1,7 @@
 # Contributing
 
 This repository is specifically for Scroll Snaps for Unity. If you have a beautiful UI Component,
-but it doesn't have to do with Scroll Snaps consider contributing to the [Unity UI Extensions] (https://bitbucket.org/beksomega/unity-ui-extensions/overview) project.
+but it doesn't have to do with Scroll Snaps consider contributing to the [Unity UI Extensions](https://bitbucket.org/beksomega/unity-ui-extensions/overview) project.
 
 ##Pull Request Process
 
