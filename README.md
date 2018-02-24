@@ -1,45 +1,76 @@
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+# Unity UI Scroll Snaps
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
+This project is about extending the Unity UI system to create components that scroll and snap to items. The main creative tenents of this repository are: 
+1. Components should be as self contained as possible, ease of installment for the user takes priority over minimizing duplicate code.
+2. Components should not rely on vanilla unity components like Scroll Rects, they should handle whatever they need to do themselves, to make it easier for the user.
+3. What you see is what you get, when the user is setting up the component in the editor it should look the same as how it will look when they run it.
 
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
+## Getting Started
 
----
+These instructions will make the Components in this project available to you inside of Unity, and allow you to get started making things.
 
-## Edit a file
+### Installing
 
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
+Download entire repository:
+1. Dowload: /Download link here/
+2. Open the Unity project you would like to import your newly downloaded assets into.
+3. On the top menu bar go to Assets > Import Package > Custom Package.
+4. Open the downloaded assets.
+5. Select Import on the new dialog window.
 
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text:
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+Downloading specific components:
+1. On Bitbucket go to Source > Scripts.
+2. Find the script you would like to add to your project and open it.
+3. At the top of that file it should say "Dependencies:" this will tell you if-there-are/what other scripts you need to download along with this one.
+4. Download all chosen/needed scripts.
+5. Open the Unity project you would like to import your newly downloaded assets into.
+6. Drag your downloaded assets into the Project window in Unity.
+7. Place any Editor scripts in a folder named "Editor", this keeps them from being added to builds, because they are not needed.
 
----
+### Adding To Project
 
-## Create a file
+1. Components can be added through the Hierarchy window through Create > UI > ScrollSnaps.
+2. Components can be added through the top menu bar by going to Gameobjects > UI > ScrollSnaps.
+3. You can add Components to all ready created gameobjects by:
+	1. Selecting the gameobject you want to add the component to.
+	2. In the Inspector window hitting the "Add Component" button and then either:
+		A) Searching for the component.
+		B) Going to UI > Scroll Snaps.
+4. You can add Components to all ready created gameobjects by:
+	1. Selecting the gameobject you want to add the component to.
+	2. Draggint the Component from the Project window into the Inspector window.
 
-Next, you’ll add a new file to this repository.
+## Deployment
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+//What's deployment?
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+## Built With
 
----
+//Do I need this?
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
 
-## Clone a repository
+## Contributing
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+## Versioning
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+//DO I need this?
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+
+## Authors
+
+* **Beks_Omega** - *Initial work*
+
+See also the list of [contributors](https://github.com/beksomega/unityuiscrollsnaps/contributors) who participated in this project.
+
+## License
+
+//What license should I use?
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Thank you to the Unity team for making the UI code available: .[UI Repository].(https://bitbucket.org/Unity-Technologies/ui/overview).
