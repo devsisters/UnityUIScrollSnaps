@@ -75,4 +75,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Thank you to the Unity team for making the UI code available: .[UI Repository].(https://bitbucket.org/Unity-Technologies/ui/overview).
+* Thank you to the Unity team for making the UI code available: [UI Repository](https://bitbucket.org/Unity-Technologies/ui/overview).
