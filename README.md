@@ -55,7 +55,7 @@ These instructions will make the Components in this project available to you ins
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [CONTRIBUTING.md](https://bitbucket.org/beksomega/unityuiscrollsnaps/src/d5e32e8d72285cae0e4b629936b67ede91f2bef4/CONTRIBUTING.md) for details on the process for submitting pull requests.
 
 ## Versioning
 
