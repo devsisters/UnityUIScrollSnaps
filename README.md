@@ -1,6 +1,7 @@
 # Unity UI Scroll Snaps
 
 This project is about extending the Unity UI system to create components that scroll and snap to items. The main creative tenents of this repository are: 
+
 1. Components should be as self contained as possible, ease of installment for the user takes priority over minimizing duplicate code.
 2. Components should not rely on vanilla unity components like Scroll Rects, they should handle whatever they need to do themselves, to make it easier for the user.
 3. What you see is what you get, when the user is setting up the component in the editor it should look the same as how it will look when they run it.
@@ -9,9 +10,7 @@ This project is about extending the Unity UI system to create components that sc
 
 These instructions will make the Components in this project available to you inside of Unity, and allow you to get started making things.
 
-### Installing
-
-Download entire repository:
+### Download entire repository:
 
 1.	Dowload: /Download link here/
 2.	Open the Unity project you would like to import your newly downloaded assets into.
@@ -19,7 +18,7 @@ Download entire repository:
 4.	Open the downloaded assets.
 5.  Select Import on the new dialog window.
 
-Downloading specific components:
+### Downloading specific components:
 
 1. On Bitbucket go to Source > Scripts.
 2. Find the script you would like to add to your project and open it.
@@ -49,6 +48,7 @@ Downloading specific components:
 ## Built With
 
 //Do I need this?
+
 * [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
 * [Maven](https://maven.apache.org/) - Dependency Management
 * [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
@@ -59,7 +59,8 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Versioning
 
-//DO I need this?
+//Do I need this?
+
 We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
 
 ## Authors
@@ -71,6 +72,7 @@ See also the list of [contributors](https://github.com/beksomega/unityuiscrollsn
 ## License
 
 //What license should I use?
+
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
