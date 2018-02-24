@@ -67,7 +67,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * **Beks_Omega** - *Initial work*
 
-See also the list of [contributors](https://github.com/beksomega/unityuiscrollsnaps/contributors) who participated in this project.
+See also the list of [contributors](https://bitbucket.org/beksomega/unityuiscrollsnaps/contributors) who participated in this project.
 
 ## License
 
