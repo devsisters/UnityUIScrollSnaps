@@ -388,8 +388,8 @@ namespace UnityEngine.UI.ScrollSnaps
         private List<RectTransform> m_AvailableForCalculating = new List<RectTransform>();
         private List<RectTransform> m_AvailableForSnappingTo = new List<RectTransform>();
 
-        private List<RectTransform> m_ChildrenForSizeFromStartToEnd = new List<RectTransform>();
-        private List<RectTransform> m_ChildrenForSnappingFromStartToEnd = new List<RectTransform>();
+        private List<RectTransform> m_ChildrenForSizeFromStartToEnd;
+        private List<RectTransform> m_ChildrenForSnappingFromStartToEnd;
 
         private List<Vector2> m_SnapPositions = new List<Vector2>();
 
@@ -416,7 +416,7 @@ namespace UnityEngine.UI.ScrollSnaps
         private Vector2 m_StartPosition;
         private Vector2 m_EndPosition;
 
-        private float totalScrollableLength;
+        private float m_TotalScrollableLength;
         private Vector2 m_MinPos;
         private Vector2 m_MaxPos;
 
@@ -448,27 +448,37 @@ namespace UnityEngine.UI.ScrollSnaps
             }
         }
 
-        private HorizontalLayoutGroup m_HorizontalLayoutGroup;
+        private LayoutGroup m_LayoutGroup;
+        private bool contentIsLayoutGroup
+        {
+            get
+            {
+                if (m_Content == null)
+                    return false;
+                m_LayoutGroup = m_Content.GetComponent<LayoutGroup>();
+                return m_LayoutGroup && m_LayoutGroup.enabled;
+            }
+        }
+
         private bool contentIsHorizonalLayoutGroup
         {
             get
             {
                 if (m_Content == null)
                     return false;
-                m_HorizontalLayoutGroup = m_Content.GetComponent<HorizontalLayoutGroup>();
-                return m_HorizontalLayoutGroup && m_HorizontalLayoutGroup.enabled;
+                HorizontalLayoutGroup horizLayoutGroup = m_Content.GetComponent<HorizontalLayoutGroup>();
+                return horizLayoutGroup && horizLayoutGroup.enabled;
             }
         }
 
-        private VerticalLayoutGroup m_VerticalLayoutGroup;
         private bool contentIsVerticalLayoutGroup
         {
             get
             {
                 if (m_Content == null)
                     return false;
-                m_VerticalLayoutGroup = content.GetComponent<VerticalLayoutGroup>();
-                return m_VerticalLayoutGroup && m_VerticalLayoutGroup.enabled;
+                VerticalLayoutGroup vertLayoutGroup = content.GetComponent<VerticalLayoutGroup>();
+                return vertLayoutGroup && vertLayoutGroup.enabled;
             }
         }
 
@@ -649,10 +659,12 @@ namespace UnityEngine.UI.ScrollSnaps
             //So that we can calculate everything correctly
             foreach (RectTransform transform in m_AvailableForCalculating)
             {
+                Vector3 worldPos = transform.position;
                 m_Tracker.Add(this, transform, DrivenTransformProperties.Anchors);
 
                 transform.anchorMax = anchorPos;
                 transform.anchorMin = anchorPos;
+                transform.position = worldPos;
             }
         }
 
@@ -698,13 +710,13 @@ namespace UnityEngine.UI.ScrollSnaps
 
             foreach (RectTransform child in m_Content)
             {
-                if (child.position.x < contentTopLeft.x || child.position.y > contentTopLeft.y)
-                {
-                    Debug.LogWarningFormat(this, childOutsideValidRegionWarning, child.name);
-                }
 
                 if (childIsAvailableForCalculating(child))
                 {
+                    if (child.position.x < contentTopLeft.x || child.position.y > contentTopLeft.y)
+                    {
+                        Debug.LogWarningFormat(this, childOutsideValidRegionWarning, child.name);
+                    }
                     m_AvailableForCalculating.Add(child);
                     if (childIsAvailableForSnappingTo(child))
                     {
@@ -753,23 +765,27 @@ namespace UnityEngine.UI.ScrollSnaps
             int paddingStart = (int)(halfViewRect - Mathf.Abs(firstCalculateChild.anchoredPosition[axis]));
             int paddingEnd = (int)(halfViewRect - (m_Content.sizeDelta[axis] - Mathf.Abs(lastCalculateChild.anchoredPosition[axis])));
 
-            if (contentIsHorizonalLayoutGroup)
+            if (contentIsLayoutGroup)
             {
-                m_HorizontalLayoutGroup.padding.left = m_HorizontalLayoutGroup.padding.left + paddingStart;
-                m_HorizontalLayoutGroup.padding.right = m_HorizontalLayoutGroup.padding.right + paddingEnd;
-                m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x + paddingStart + paddingEnd, m_Content.sizeDelta.y);
-            }
-            else if (contentIsVerticalLayoutGroup)
-            {
-                m_VerticalLayoutGroup.padding.top = m_VerticalLayoutGroup.padding.top + paddingStart;
-                m_VerticalLayoutGroup.padding.bottom = m_VerticalLayoutGroup.padding.bottom + paddingEnd;
-                m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x, m_Content.sizeDelta.y + paddingStart + paddingEnd);
+                if (m_MovementDirection == MovementDirection.Horizontal)
+                {
+                    m_LayoutGroup.padding.left = m_LayoutGroup.padding.left + paddingStart;
+                    m_LayoutGroup.padding.right = m_LayoutGroup.padding.right + paddingEnd;
+                    m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x + paddingStart + paddingEnd, m_Content.sizeDelta.y);
+                }
+                else
+                {
+                    m_LayoutGroup.padding.top = m_LayoutGroup.padding.top + paddingStart;
+                    m_LayoutGroup.padding.bottom = m_LayoutGroup.padding.bottom + paddingEnd;
+                    m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x, m_Content.sizeDelta.y + paddingStart + paddingEnd);
+                }
+                RebuildLayoutGroups();
             }
             else
             {
                 foreach (RectTransform child in m_ChildrenForSizeFromStartToEnd)
                 {
-                    if (movementDirection == MovementDirection.Horizontal)
+                    if (m_MovementDirection == MovementDirection.Horizontal)
                     {
                         child.anchoredPosition = new Vector2(child.anchoredPosition.x + paddingStart, child.anchoredPosition.y);
                     }
@@ -778,20 +794,22 @@ namespace UnityEngine.UI.ScrollSnaps
                         child.anchoredPosition = new Vector2(child.anchoredPosition.x, child.anchoredPosition.y - paddingStart);
                     }
                 }
-
                 float totalSize = Mathf.Abs(lastCalculateChild.anchoredPosition[axis]) + halfViewRect;
                 m_Content.sizeDelta = (movementDirection == MovementDirection.Horizontal) ? new Vector2(totalSize, m_Content.sizeDelta.y) : new Vector2(m_Content.sizeDelta.x, totalSize);
-
-                m_MinPos = new Vector2(-((m_Content.sizeDelta.x / 2) - viewRect.sizeDelta.x), -m_Content.sizeDelta.y / 2);
-                m_MaxPos = new Vector2(m_Content.sizeDelta.x / 2, (m_Content.sizeDelta.y / 2) - viewRect.sizeDelta.y);
             }
+            SetNormalizedPosition(1, 0);
+            SetNormalizedPosition(0, 1);
+            m_MinPos = m_Content.anchoredPosition;
+            SetNormalizedPosition(0, 0);
+            SetNormalizedPosition(1, 1);
+            m_MaxPos = m_Content.anchoredPosition;
         }
 
         private void GetSnapPositions()
         {
             m_ChildrenForSnappingFromStartToEnd = new List<RectTransform>();
             m_SnapPositions = new List<Vector2>();
-            totalScrollableLength = m_Content.sizeDelta[axis] - viewRect.sizeDelta[axis];
+            m_TotalScrollableLength = m_Content.sizeDelta[axis] - viewRect.sizeDelta[axis];
             foreach (RectTransform child in m_ChildrenForSizeFromStartToEnd)
             {
                 if (m_AvailableForSnappingTo.Contains(child))
@@ -1102,7 +1120,7 @@ namespace UnityEngine.UI.ScrollSnaps
             Vector2 offset = CalculateOffset(Vector2.zero);
             Vector2 snapPos;
 
-            if (!m_UseVelocity || offset[axis] != 0)
+            if (!m_UseVelocity)
             {
                 Vector2 finalPos = m_Content.anchoredPosition;
                 if (m_SnapType == SnapType.SnapToNearest)
@@ -1180,7 +1198,7 @@ namespace UnityEngine.UI.ScrollSnaps
         /// <returns>Returns true if the supplied RectTransform is a child of the content.</returns>
         public bool GetNormalizedPositionOfChild(RectTransform child, out float normalizedPosition) //bool = is child of content
         {
-            normalizedPosition = DistanceOnAxis(child.anchoredPosition, firstCalculateChild.anchoredPosition, axis) / totalScrollableLength;
+            normalizedPosition = DistanceOnAxis(child.anchoredPosition, firstCalculateChild.anchoredPosition, axis) / m_TotalScrollableLength;
             return child.parent == m_Content;
         }
 
@@ -1415,34 +1433,22 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private void RebuildLayoutGroups()
         {
-            if (contentIsHorizonalLayoutGroup)
+            if (contentIsLayoutGroup)
             {
-                m_HorizontalLayoutGroup.CalculateLayoutInputHorizontal();
-                m_HorizontalLayoutGroup.CalculateLayoutInputVertical();
-                m_HorizontalLayoutGroup.SetLayoutHorizontal();
-                m_HorizontalLayoutGroup.SetLayoutVertical();
-            }
-            else if (contentIsVerticalLayoutGroup)
-            {
-                m_VerticalLayoutGroup.CalculateLayoutInputHorizontal();
-                m_VerticalLayoutGroup.CalculateLayoutInputVertical();
-                m_VerticalLayoutGroup.SetLayoutHorizontal();
-                m_VerticalLayoutGroup.SetLayoutVertical();
+                m_LayoutGroup.CalculateLayoutInputHorizontal();
+                m_LayoutGroup.CalculateLayoutInputVertical();
+                m_LayoutGroup.SetLayoutHorizontal();
+                m_LayoutGroup.SetLayoutVertical();
             }
         }
 
         public virtual void Rebuild(CanvasUpdate executing)
         {
-            if (executing == CanvasUpdate.Prelayout)
-            {
-                //UpdateCachedData();
-            }
-
             if (executing == CanvasUpdate.PostLayout)
             {
                 UpdateBounds();
-                //UpdateScrollbars(Vector2.zero);
-                //UpdatePrevData();
+                UpdateScrollbars(Vector2.zero);
+                UpdatePrevData();
 
                 m_HasRebuiltLayout = true;
             }
@@ -1483,7 +1489,7 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 localPosition[axis] = newLocalPosition;
                 m_Content.localPosition = localPosition;
-                //m_Velocity[axis] = 0;
+                m_Velocity[axis] = 0;
                 UpdateBounds();
             }
         }
@@ -1628,7 +1634,7 @@ namespace UnityEngine.UI.ScrollSnaps
             m_PrevViewBounds = m_ViewBounds;
             m_PrevContentBounds = m_ContentBounds;
             m_PrevClosestSnap = m_ClosestSnapPositionIndex;
-            m_PrevScrolling = m_Scroller.isFinished;
+            m_PrevScrolling = !m_Scroller.isFinished;
         }
 
         protected void SetDirtyCaching()
@@ -1835,7 +1841,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 childRectTransform.sizeDelta = new Vector2(100, 100);
                 childRectTransform.anchoredPosition = new Vector2(100 + (150 * i), -100);
             }
-            
+
             GameObjectUtility.SetParentAndAlign(GO, menuCommand.context as GameObject);
             Undo.RegisterCreatedObjectUndo(GO, "Create " + GO.name);
             Selection.activeObject = GO;

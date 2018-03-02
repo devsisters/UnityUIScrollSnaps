@@ -1,9 +1,9 @@
 # Contributing
 
 This repository is specifically for Scroll Snaps for Unity. If you have a beautiful UI Component,
-but it doesn't have to do with Scroll Snaps consider contributing to the [Unity UI Extensions](https://bitbucket.org/beksomega/unity-ui-extensions/overview) project.
+but it doesn't have to do with Scroll Snaps consider contributing to the [Unity UI Extensions](https://bitbucket.org/UnityUIExtensions/unity-ui-extensions/overview) project.
 
-##Creative Tenents
+##Creative Tenets
 
 1. Components should be as self contained as possible, ease of installment for the user takes priority over minimizing duplicate code.
 2. Components should not rely on vanilla unity components like Scroll Rects, they should handle whatever they need to do themselves, to make it easier for the user.
