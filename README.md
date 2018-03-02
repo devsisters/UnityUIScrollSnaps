@@ -1,6 +1,6 @@
 # Unity UI Scroll Snaps
 
-This project is about extending the Unity UI system to create components that scroll and snap to items. The main creative tenents of this repository are: 
+This project is about extending the Unity UI system to create components that scroll and snap to items. The main creative tenets of this repository are: 
 
 1. Components should be as self-contained as possible, ease of installment for the user takes priority over minimizing duplicate code.
 2. Components should not rely on vanilla Unity Components like Scroll Rects, they should handle whatever they need to do themselves, to make it easier for the user.
