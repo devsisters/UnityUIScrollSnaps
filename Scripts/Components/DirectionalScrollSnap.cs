@@ -34,7 +34,8 @@ namespace UnityEngine.UI.ScrollSnaps
         public enum SnapType
         {
             SnapToNearest,
-            SnapToLastPassed
+            SnapToLastPassed,
+            SnapToNext
         }
 
         private enum Direction
@@ -387,9 +388,9 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private List<RectTransform> m_AvailableForCalculating = new List<RectTransform>();
         private List<RectTransform> m_AvailableForSnappingTo = new List<RectTransform>();
-
-        private List<RectTransform> m_ChildrenForSizeFromStartToEnd;
-        private List<RectTransform> m_ChildrenForSnappingFromStartToEnd;
+        
+        private List<RectTransform> m_ChildrenForSizeFromStartToEnd = new List<RectTransform>();
+        private List<RectTransform> m_ChildrenForSnappingFromStartToEnd = new List<RectTransform>();
 
         private List<Vector2> m_SnapPositions = new List<Vector2>();
 
@@ -412,6 +413,8 @@ namespace UnityEngine.UI.ScrollSnaps
 
         [NonSerialized]
         private bool m_HasRebuiltLayout = false;
+        [NonSerialized]
+        private bool m_HasUpdatedLayout = false;
 
         private Vector2 m_StartPosition;
         private Vector2 m_EndPosition;
@@ -459,7 +462,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 return m_LayoutGroup && m_LayoutGroup.enabled;
             }
         }
-
+        
         private bool contentIsHorizonalLayoutGroup
         {
             get
@@ -470,7 +473,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 return horizLayoutGroup && horizLayoutGroup.enabled;
             }
         }
-
+        
         private bool contentIsVerticalLayoutGroup
         {
             get
@@ -615,6 +618,7 @@ namespace UnityEngine.UI.ScrollSnaps
             }
 
             m_HasRebuiltLayout = false;
+            m_HasUpdatedLayout = false;
             m_Tracker.Clear();
             m_Velocity = Vector2.zero;
             LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
@@ -629,6 +633,7 @@ namespace UnityEngine.UI.ScrollSnaps
             if (m_Content == null)
                 return;
 
+            m_HasUpdatedLayout = true;
             OnValidate();
             EnsureLayoutHasRebuilt();
             GetValidChildren();
@@ -659,12 +664,10 @@ namespace UnityEngine.UI.ScrollSnaps
             //So that we can calculate everything correctly
             foreach (RectTransform transform in m_AvailableForCalculating)
             {
-                Vector3 worldPos = transform.position;
                 m_Tracker.Add(this, transform, DrivenTransformProperties.Anchors);
 
                 transform.anchorMax = anchorPos;
                 transform.anchorMin = anchorPos;
-                transform.position = worldPos;
             }
         }
 
@@ -1028,7 +1031,7 @@ namespace UnityEngine.UI.ScrollSnaps
             }
             if (m_Scroller.isFinished && m_PrevScrolling)
             {
-                snappedToItem.Invoke(m_ClosestSnapPositionIndex);
+                m_SnappedToItem.Invoke(m_ClosestSnapPositionIndex);
                 m_Velocity = Vector2.zero;
             }
 
@@ -1128,9 +1131,14 @@ namespace UnityEngine.UI.ScrollSnaps
                     snapPos = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
                     finalPos[axis] = snapPos[axis];
                 }
-                else
+                else if (m_SnapType == SnapType.SnapToLastPassed)
                 {
                     snapPos = FindLastSnapPositionBeforePosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis));
+                    finalPos[axis] = snapPos[axis];
+                }
+                else
+                {
+                    snapPos = FindNextSnapAfterPosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis));
                     finalPos[axis] = snapPos[axis];
                 }
                 finalPos.x = Mathf.Clamp(finalPos.x, m_MinPos.x, m_MaxPos.x);
@@ -1149,9 +1157,14 @@ namespace UnityEngine.UI.ScrollSnaps
                     snapPos = FindClosestSnapPositionToPosition(finalPos);
                     finalPos[axis] = snapPos[axis];
                 }
+                else if (m_SnapType == SnapType.SnapToLastPassed)
+                {
+                    snapPos = FindLastSnapPositionBeforePosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis));
+                    finalPos[axis] = snapPos[axis];
+                }
                 else
                 {
-                    snapPos = FindLastSnapPositionBeforePosition(m_Scroller.finalPosition, GetDirectionFromVelocity(m_Velocity, axis));
+                    snapPos = FindNextSnapAfterPosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis));
                     finalPos[axis] = snapPos[axis];
                 }
                 finalPos.x = Mathf.Clamp(finalPos.x, m_MinPos.x, m_MaxPos.x);
@@ -1220,8 +1233,6 @@ namespace UnityEngine.UI.ScrollSnaps
         /// <summary>
         /// Gets the snap position index of the child. 
         /// </summary>
-        /// <param name="child"></param>
-        /// <param name="index"></param>
         /// <returns>Returns true if the the supplied RectTransform is a child of the content.</returns>
         public bool GetIndexOfChild(RectTransform child, out int index) //bool = is it a snap position
         {
@@ -1322,6 +1333,36 @@ namespace UnityEngine.UI.ScrollSnaps
             }
 
             if (direction == Direction.TowardsStart)
+            {
+                m_SnapPositions.Reverse();
+            }
+            return selectedSnapPosition;
+        }
+
+        private Vector2 FindNextSnapAfterPosition(Vector2 position, Direction direction)
+        {
+            EnsureLayoutHasRebuilt();
+            Vector2 distanceReferencePos = m_StartPosition;
+            if (direction == Direction.TowardsEnd)
+            {
+                m_SnapPositions.Reverse();
+                distanceReferencePos = m_EndPosition;
+            }
+
+            Vector2 selectedSnapPosition = Vector2.zero;
+            float distanceFromPosition = Mathf.Infinity;
+            float maxDistance = DistanceOnAxis(distanceReferencePos, position, axis);
+            
+            foreach (Vector2 snapPosition in m_SnapPositions)
+            {
+                if (DistanceOnAxis(position, snapPosition, axis) < distanceFromPosition && DistanceOnAxis(distanceReferencePos, snapPosition, axis) <= maxDistance)
+                {
+                    distanceFromPosition = DistanceOnAxis(position, snapPosition, axis);
+                    selectedSnapPosition = snapPosition;
+                }
+            }
+
+            if (direction == Direction.TowardsEnd)
             {
                 m_SnapPositions.Reverse();
             }
@@ -1468,12 +1509,21 @@ namespace UnityEngine.UI.ScrollSnaps
             }
         }
 
+        private void EnsureLayoutUpdated()
+        {
+            if (!m_HasUpdatedLayout)
+            {
+                UpdateLayout();
+            }
+        }
+
         private void SetHorizontalNormalizedPosition(float value) { SetNormalizedPosition(value, 0); }
         private void SetVerticalNormalizedPosition(float value) { SetNormalizedPosition(value, 1); }
 
         private void SetNormalizedPosition(float value, int axis)
         {
             EnsureLayoutHasRebuilt();
+            EnsureLayoutUpdated();
             UpdateBounds();
             // How much the content is larger than the view.
             float scrollableLength = m_ContentBounds.size[axis] - m_ViewBounds.size[axis];
@@ -1714,7 +1764,7 @@ namespace UnityEngine.UI.ScrollSnaps
             }
         }
 
-        public static float GetGizmoSize(Vector3 position)
+        private float GetGizmoSize(Vector3 position)
         {
             Camera current = Camera.current;
             position = Gizmos.matrix.MultiplyPoint(position);
@@ -1742,7 +1792,8 @@ namespace UnityEngine.UI.ScrollSnaps
             m_MaxDurationMillis = Math.Max(m_MaxDurationMillis, Mathf.Max(m_MinDurationMillis, 1));
             m_ScrollDurationMillis = Mathf.Max(m_ScrollDurationMillis, 1);
 
-            m_ScrollDelay = Mathf.Max(scrollDelay, 0);
+            m_ScrollSensitivity = Mathf.Max(m_ScrollSensitivity, 0);
+            m_ScrollDelay = Mathf.Max(m_ScrollDelay, 0);
 
             if (m_Scroller != null && (m_Scroller.interpolator != GetInterpolator() || m_Tension != m_PrevTension || m_Friction != m_PrevFriction || m_MinDurationMillis != m_PrevMinDuration || m_MaxDurationMillis != m_PrevMaxDuration))
             {
