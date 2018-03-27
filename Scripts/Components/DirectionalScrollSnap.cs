@@ -9,7 +9,9 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
+#if UNITY_EDITOR
 using UnityEditor;
+#endif
 
 namespace UnityEngine.UI.ScrollSnaps
 {
@@ -361,6 +363,22 @@ namespace UnityEngine.UI.ScrollSnaps
         private int m_ClosestSnapPositionIndex;
         public int closestSnapPositionIndex { get { return m_ClosestSnapPositionIndex; } }
 
+        public RectTransform closestItem
+        {
+            get
+            {
+                RectTransform child;
+                GetChildAtIndex(m_ClosestSnapPositionIndex, out child);
+                return child;
+            }
+        }
+
+        private List<RectTransform> m_ChildrenForSizeFromStartToEnd = new List<RectTransform>();
+        public List<RectTransform> calculateChildren { get { return m_ChildrenForSizeFromStartToEnd; } }
+
+        private List<RectTransform> m_ChildrenForSnappingFromStartToEnd = new List<RectTransform>();
+        public List<RectTransform> snapChildren { get { return m_ChildrenForSnappingFromStartToEnd; } }
+
         private Scroller m_Scroller;
         public Scroller scroller
         {
@@ -388,9 +406,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private List<RectTransform> m_AvailableForCalculating = new List<RectTransform>();
         private List<RectTransform> m_AvailableForSnappingTo = new List<RectTransform>();
-        
-        private List<RectTransform> m_ChildrenForSizeFromStartToEnd = new List<RectTransform>();
-        private List<RectTransform> m_ChildrenForSnappingFromStartToEnd = new List<RectTransform>();
 
         private List<Vector2> m_SnapPositions = new List<Vector2>();
 
@@ -462,7 +477,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 return m_LayoutGroup && m_LayoutGroup.enabled;
             }
         }
-        
+
         private bool contentIsHorizonalLayoutGroup
         {
             get
@@ -473,7 +488,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 return horizLayoutGroup && horizLayoutGroup.enabled;
             }
         }
-        
+
         private bool contentIsVerticalLayoutGroup
         {
             get
@@ -634,12 +649,13 @@ namespace UnityEngine.UI.ScrollSnaps
                 return;
 
             m_HasUpdatedLayout = true;
-            OnValidate();
+            Validate();
             EnsureLayoutHasRebuilt();
             GetValidChildren();
             SetupDrivenTransforms();
             GetChildrenFromStartToEnd();
 
+            RebuildLayoutGroups();
             Vector2 childOneOrigPosTransformLocalSpace = transform.InverseTransformPoint(firstCalculateChild.position);
 
             ResizeContent();
@@ -1248,7 +1264,7 @@ namespace UnityEngine.UI.ScrollSnaps
         /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
         public bool GetNormalizedPositionOfSnapPosition(int snapPositionIndex, out float normalizedPosition)
         {
-            if (snapPositionIndex > 0 && snapPositionIndex < m_SnapPositions.Count)
+            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
             {
                 RectTransform child;
                 GetChildAtIndex(snapPositionIndex, out child);
@@ -1265,7 +1281,7 @@ namespace UnityEngine.UI.ScrollSnaps
         /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
         public bool GetSnapPositionAtIndex(int snapPositionIndex, out Vector2 location) //bool = is it a snap position
         {
-            if (snapPositionIndex > 0 && snapPositionIndex < m_SnapPositions.Count)
+            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
             {
                 location = m_SnapPositions[snapPositionIndex];
                 return true;
@@ -1280,7 +1296,7 @@ namespace UnityEngine.UI.ScrollSnaps
         /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
         public bool GetChildAtIndex(int snapPositionIndex, out RectTransform child)
         {
-            if (snapPositionIndex > 0 && snapPositionIndex < m_SnapPositions.Count)
+            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
             {
                 child = m_ChildrenForSnappingFromStartToEnd[snapPositionIndex];
                 return true;
@@ -1352,7 +1368,7 @@ namespace UnityEngine.UI.ScrollSnaps
             Vector2 selectedSnapPosition = Vector2.zero;
             float distanceFromPosition = Mathf.Infinity;
             float maxDistance = DistanceOnAxis(distanceReferencePos, position, axis);
-            
+
             foreach (Vector2 snapPosition in m_SnapPositions)
             {
                 if (DistanceOnAxis(position, snapPosition, axis) < distanceFromPosition && DistanceOnAxis(distanceReferencePos, snapPosition, axis) <= maxDistance)
@@ -1783,8 +1799,9 @@ namespace UnityEngine.UI.ScrollSnaps
             return 20f;
         }
 
-        protected override void OnValidate()
+        private void Validate()
         {
+
             m_Friction = Mathf.Max(m_Friction, .001f);
             m_Tension = Mathf.Max(m_Tension, 0);
 
@@ -1816,6 +1833,13 @@ namespace UnityEngine.UI.ScrollSnaps
             }
 
             SetDirtyCaching();
+        }
+
+#if UNITY_EDITOR
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            Validate();
         }
 
         [MenuItem("GameObject/UI/ScrollSnaps/DirectionalScrollSnap", false, 10)]
@@ -1945,6 +1969,7 @@ namespace UnityEngine.UI.ScrollSnaps
             rectTransform.localRotation = Quaternion.identity;
             rectTransform.localScale = Vector3.one;
         }
+#endif
 
         protected class ScrollBarEventsListener : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
         {

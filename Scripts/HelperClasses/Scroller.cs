@@ -191,6 +191,39 @@ namespace UnityEngine.UI.ScrollSnaps
         }
 
         /// <summary>
+        /// Returns the scroller's friction. The friction controls how quickly or slowly fling animations come to a stop.
+        /// </summary>
+        public float friction
+        {
+            get
+            {
+                return m_FlingFriction;
+            }
+        }
+
+        /// <summary>
+        /// Returns the minimum duration, in miliseconds, for all animations, scroll and fling.
+        /// </summary>
+        public int minDuration
+        {
+            get
+            {
+                return m_MinDuration;
+            }
+        }
+
+        /// <summary>
+        /// Returns the maximum duration, in miliseconds, for all animations, scroll and fling.
+        /// </summary>
+        public int maxDuraiton
+        {
+            get
+            {
+                return m_MaxDuration;
+            }
+        }
+
+        /// <summary>
         /// Returns the current position in the scroll. Before calling this it is best to call ComputeScrollOffset() if you are looking for up-to-date data.
         /// </summary>
         public Vector2 currentPosition
