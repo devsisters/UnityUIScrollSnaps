@@ -72,6 +72,12 @@ namespace UnityEngine.UI.ScrollSnaps
             ButtonPress,
             Programmatic
         }
+        
+        public enum LockMode
+        {
+            Before,
+            After,
+        }
 
         [Serializable]
         public class Vector2Event : UnityEvent<Vector2> { }
@@ -95,11 +101,17 @@ namespace UnityEngine.UI.ScrollSnaps
             set
             {
                 if (contentIsHorizonalLayoutGroup)
+                {
                     m_MovementDirection = MovementDirection.Horizontal;
+                }
                 else if (contentIsVerticalLayoutGroup)
+                {
                     m_MovementDirection = MovementDirection.Vertical;
+                }
                 else
+                {
                     m_MovementDirection = value;
+                }
             }
         }
 
@@ -121,12 +133,15 @@ namespace UnityEngine.UI.ScrollSnaps
 
         [SerializeField]
         private float m_Friction = .25f;
+        public float friction { get { return m_Friction; } }
 
         [SerializeField]
         private InterpolatorType m_InterpolatorType = InterpolatorType.ViscousFluid;
+        public InterpolatorType interpolator { get { return m_InterpolatorType; } }
 
         [SerializeField]
         private float m_Tension = 2f;
+        public float tension { get { return m_Tension; } }
 
         [SerializeField]
         private float m_ScrollSensitivity = 1.0f;
@@ -148,9 +163,11 @@ namespace UnityEngine.UI.ScrollSnaps
 
         [SerializeField]
         private int m_MinDurationMillis = 200;
+        public int minDuration {  get { return m_MinDurationMillis; } }
 
         [SerializeField]
         private int m_MaxDurationMillis = 2000;
+        public int maxDuration { get { return m_MaxDurationMillis; } }
 
         [SerializeField]
         private int m_ScrollDurationMillis = 250;
@@ -168,27 +185,27 @@ namespace UnityEngine.UI.ScrollSnaps
 
         [SerializeField]
         private bool m_AddInactiveChildrenToCalculatingFilter;
-        public bool addInactiveChildrenToCalculatingFilter { get { return m_AddInactiveChildrenToCalculatingFilter; } set { m_AddInactiveChildrenToCalculatingFilter = value; } }
+        public bool addInactiveChildrenToCalculatingFilter{ get { return m_AddInactiveChildrenToCalculatingFilter; } }
 
         [SerializeField]
         private FilterMode m_FilterModeForCalculatingSize;
-        public FilterMode calculateSizeFilterMode { get { return m_FilterModeForCalculatingSize; } set { m_FilterModeForCalculatingSize = value; } }
+        public FilterMode calculateSizeFilterMode { get { return m_FilterModeForCalculatingSize; }}
 
         [SerializeField]
         private List<RectTransform> m_CalculatingFilter = new List<RectTransform>();
-        public List<RectTransform> calculatingFilter { get { return m_CalculatingFilter; } set { m_CalculatingFilter = value; } }
+        public List<RectTransform> calculatingFilter { get { return m_CalculatingFilter; }}
 
         [SerializeField]
         private bool m_AddInactiveChildrenToSnapPositionsFilter;
-        public bool addInactiveChildrenToSnapPositionsFilter { get { return m_AddInactiveChildrenToSnapPositionsFilter; } set { m_AddInactiveChildrenToSnapPositionsFilter = value; } }
+        public bool addInactiveChildrenToSnapPositionsFilter { get { return m_AddInactiveChildrenToSnapPositionsFilter; }}
 
         [SerializeField]
         private FilterMode m_FilterModeForSnapPositions;
-        public FilterMode snapPositionsFilterMode { get { return m_FilterModeForSnapPositions; } set { m_FilterModeForSnapPositions = value; } }
+        public FilterMode snapPositionsFilterMode { get { return m_FilterModeForSnapPositions; } }
 
         [SerializeField]
         private List<RectTransform> m_SnapPositionsFilter = new List<RectTransform>();
-        public List<RectTransform> snapPositionsFilter { get { return m_SnapPositionsFilter; } set { m_SnapPositionsFilter = value; } }
+        public List<RectTransform> snapPositionsFilter { get { return m_SnapPositionsFilter; }}
 
         [SerializeField]
         private RectTransform m_Viewport;
@@ -215,13 +232,17 @@ namespace UnityEngine.UI.ScrollSnaps
                         DestroyImmediate(m_HorizontalScrollbarEventsListener);
                     }
                 }
-                m_HorizontalScrollbar = value;
-                if (m_HorizontalScrollbar)
+
+                if (!m_Loop)
                 {
-                    m_HorizontalScrollbar.onValueChanged.AddListener(SetHorizontalNormalizedPosition);
-                    m_HorizontalScrollbarEventsListener = m_HorizontalScrollbar.gameObject.AddComponent<ScrollBarEventsListener>();
-                    m_HorizontalScrollbarEventsListener.onPointerDown += ScrollBarPointerDown;
-                    m_HorizontalScrollbarEventsListener.onPointerUp += ScrollBarPointerUp;
+                    m_HorizontalScrollbar = value;
+                    if (m_HorizontalScrollbar)
+                    {
+                        m_HorizontalScrollbar.onValueChanged.AddListener(SetHorizontalNormalizedPosition);
+                        m_HorizontalScrollbarEventsListener = m_HorizontalScrollbar.gameObject.AddComponent<ScrollBarEventsListener>();
+                        m_HorizontalScrollbarEventsListener.onPointerDown += ScrollBarPointerDown;
+                        m_HorizontalScrollbarEventsListener.onPointerUp += ScrollBarPointerUp;
+                    }
                 }
             }
         }
@@ -247,13 +268,17 @@ namespace UnityEngine.UI.ScrollSnaps
                         DestroyImmediate(m_VerticalScrollBarEventsListener);
                     }
                 }
-                m_VerticalScrollbar = value;
-                if (m_VerticalScrollbar)
+
+                if (!m_Loop)
                 {
-                    m_VerticalScrollbar.onValueChanged.AddListener(SetVerticalNormalizedPosition);
-                    m_VerticalScrollBarEventsListener = m_VerticalScrollbar.gameObject.AddComponent<ScrollBarEventsListener>();
-                    m_VerticalScrollBarEventsListener.onPointerDown += ScrollBarPointerDown;
-                    m_VerticalScrollBarEventsListener.onPointerUp += ScrollBarPointerUp;
+                    m_VerticalScrollbar = value;
+                    if (m_VerticalScrollbar)
+                    {
+                        m_VerticalScrollbar.onValueChanged.AddListener(SetVerticalNormalizedPosition);
+                        m_VerticalScrollBarEventsListener = m_VerticalScrollbar.gameObject.AddComponent<ScrollBarEventsListener>();
+                        m_VerticalScrollBarEventsListener.onPointerDown += ScrollBarPointerDown;
+                        m_VerticalScrollBarEventsListener.onPointerUp += ScrollBarPointerUp;
+                    }
                 }
             }
         }
@@ -301,6 +326,14 @@ namespace UnityEngine.UI.ScrollSnaps
                 }
             }
         }
+        
+        [SerializeField]
+        private bool m_Loop = false;
+        public bool loop { get { return loop; } set { m_Loop = value; } }
+        
+        [SerializeField]
+        private int m_EndSpacing;
+        public int endSpacing { get { return m_EndSpacing; } }
 
         [SerializeField]
         private bool m_DrawGizmos = false;
@@ -332,7 +365,9 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 UpdateBounds();
                 if (m_ContentBounds.size.x <= m_ViewBounds.size.x)
+                {
                     return (m_ViewBounds.min.x > m_ContentBounds.min.x) ? 1 : 0;
+                }
                 return (m_ViewBounds.min.x - m_ContentBounds.min.x) / (m_ContentBounds.size.x - m_ViewBounds.size.x);
             }
             set
@@ -347,8 +382,9 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 UpdateBounds();
                 if (m_ContentBounds.size.y <= m_ViewBounds.size.y)
+                {
                     return (m_ViewBounds.min.y > m_ContentBounds.min.y) ? 1 : 0;
-                ;
+                }
                 return 1 - (m_ViewBounds.min.y - m_ContentBounds.min.y) / (m_ContentBounds.size.y - m_ViewBounds.size.y);
             }
             set
@@ -368,7 +404,7 @@ namespace UnityEngine.UI.ScrollSnaps
             get
             {
                 RectTransform child;
-                GetChildAtIndex(m_ClosestSnapPositionIndex, out child);
+                GetChildAtSnapIndex(m_ClosestSnapPositionIndex, out child);
                 return child;
             }
         }
@@ -385,13 +421,17 @@ namespace UnityEngine.UI.ScrollSnaps
             get
             {
                 if (m_Scroller == null)
+                {
                     m_Scroller = new Scroller(m_MinDurationMillis, m_MaxDurationMillis, GetInterpolator());
+                }
                 return m_Scroller;
             }
             set
             {
                 if (m_Scroller != null)
+                {
                     m_Scroller.AbortAnimation();
+                }
                 m_Scroller = value;
             }
         }
@@ -399,7 +439,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private string filterWhitelistException = "The {0} is set to whitelist and is either empty or contains an empty object. You probably need to assign a child to the {0} or set the {0} to blacklist.";
         private string availableChildrenListEmptyException = "The Content has no children available for {0}. This is probably because they are all blacklisted. You should check what children you have blacklisted in your item filters and if you have Add Inactive Children checked.";
-        private string contentHasNoChildrenException = "The Content has no children so it is unable to snap. You should assign children to the Content or choose a new RectTransform for the Content.";
         private string childOutsideValidRegionWarning = "Child: {0} is outside the valid bounds of the content. If this was unintentional move it inside region indicated by the green arrow gizmos. If you see no green arrows turn on Draw Gizmos.";
 
         private DrivenRectTransformTracker m_Tracker;
@@ -408,6 +447,9 @@ namespace UnityEngine.UI.ScrollSnaps
         private List<RectTransform> m_AvailableForSnappingTo = new List<RectTransform>();
 
         private List<Vector2> m_SnapPositions = new List<Vector2>();
+        
+        private List<float> m_CalculateDistances = new List<float>();
+        private List<float> m_SnapDistances = new List<float>();
 
         // The offset from handle position to mouse down position
         private Vector2 m_PointerStartLocalCursor = Vector2.zero;
@@ -419,7 +461,7 @@ namespace UnityEngine.UI.ScrollSnaps
         private Vector2 m_PrevPosition = Vector2.zero;
         private Bounds m_PrevContentBounds;
         private Bounds m_PrevViewBounds;
-        private int m_PrevClosestSnap;
+        private RectTransform m_PrevClosestItem;
         private bool m_PrevScrolling;
         private float m_PrevTension;
         private float m_PrevFriction;
@@ -428,18 +470,17 @@ namespace UnityEngine.UI.ScrollSnaps
 
         [NonSerialized]
         private bool m_HasRebuiltLayout = false;
-        [NonSerialized]
-        private bool m_HasUpdatedLayout = false;
-
-        private Vector2 m_StartPosition;
-        private Vector2 m_EndPosition;
+        private bool m_TrackerSetup = false;
 
         private float m_TotalScrollableLength;
         private Vector2 m_MinPos;
         private Vector2 m_MaxPos;
+        private int m_ExtraLoopSpace;
 
         private bool m_WaitingForEndScrolling;
         private float m_TimeOfLastScroll;
+
+        private Camera m_LastPressedCamera;
 
         [NonSerialized]
         private RectTransform m_Rect;
@@ -448,7 +489,9 @@ namespace UnityEngine.UI.ScrollSnaps
             get
             {
                 if (m_Rect == null)
+                {
                     m_Rect = GetComponent<RectTransform>();
+                }
                 return m_Rect;
             }
         }
@@ -459,42 +502,53 @@ namespace UnityEngine.UI.ScrollSnaps
             get
             {
                 if (m_ViewRect == null)
+                {
                     m_ViewRect = m_Viewport;
+                }
                 if (m_ViewRect == null)
+                {
                     m_ViewRect = (RectTransform)transform;
+                }
                 return m_ViewRect;
             }
         }
 
+        private bool m_LayoutGroupWasEnabled;
         private LayoutGroup m_LayoutGroup;
         private bool contentIsLayoutGroup
         {
             get
             {
                 if (m_Content == null)
+                {
                     return false;
+                }
                 m_LayoutGroup = m_Content.GetComponent<LayoutGroup>();
-                return m_LayoutGroup && m_LayoutGroup.enabled;
+                return m_LayoutGroup;
             }
         }
-
+        
         private bool contentIsHorizonalLayoutGroup
         {
             get
             {
                 if (m_Content == null)
+                {
                     return false;
+                }
                 HorizontalLayoutGroup horizLayoutGroup = m_Content.GetComponent<HorizontalLayoutGroup>();
                 return horizLayoutGroup && horizLayoutGroup.enabled;
             }
         }
-
+        
         private bool contentIsVerticalLayoutGroup
         {
             get
             {
                 if (m_Content == null)
+                {
                     return false;
+                }
                 VerticalLayoutGroup vertLayoutGroup = content.GetComponent<VerticalLayoutGroup>();
                 return vertLayoutGroup && vertLayoutGroup.enabled;
             }
@@ -506,9 +560,13 @@ namespace UnityEngine.UI.ScrollSnaps
             get
             {
                 if (m_ChildrenForSizeFromStartToEnd == null)
+                {
                     GetChildrenFromStartToEnd();
+                }
                 if (m_StartChild == null)
+                {
                     m_StartChild = m_ChildrenForSizeFromStartToEnd[0];
+                }
                 return m_StartChild;
             }
         }
@@ -518,12 +576,26 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             get
             {
-                if
-                    (m_ChildrenForSizeFromStartToEnd == null)
+                if (m_ChildrenForSizeFromStartToEnd == null)
+                {
                     GetChildrenFromStartToEnd();
+                }
                 if (m_EndChild == null)
+                {
                     m_EndChild = m_ChildrenForSizeFromStartToEnd[m_ChildrenForSizeFromStartToEnd.Count - 1];
+                }
                 return m_EndChild;
+            }
+        }
+
+        private int viewRectSize
+        {
+            get
+            {
+
+                Vector3[] viewRectCorners = new Vector3[4];
+                viewRect.GetWorldCorners(viewRectCorners);
+                return (int)DistanceOnAxis(viewRectCorners[1], viewRectCorners[3], axis);
             }
         }
 
@@ -549,9 +621,21 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             get
             {
-                return (m_MovementDirection == MovementDirection.Vertical) ? 0 : 1;
+                return 1 - axis;
             }
         }
+
+        private int movementDirectionMult
+        {
+            get
+            {
+                return (m_MovementDirection == MovementDirection.Vertical) ? -1 : 1;
+            }
+        }
+        #endregion
+
+        #region Temp
+        
         #endregion
 
         #region SetupScrollSnap
@@ -559,8 +643,7 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             base.OnEnable();
 
-
-            if (m_HorizontalScrollbar)
+            if (m_HorizontalScrollbar && !m_Loop)
             {
                 m_HorizontalScrollbar.onValueChanged.AddListener(SetHorizontalNormalizedPosition);
                 if (Application.isPlaying)
@@ -570,7 +653,7 @@ namespace UnityEngine.UI.ScrollSnaps
                     m_HorizontalScrollbarEventsListener.onPointerUp += ScrollBarPointerUp;
                 }
             }
-            if (m_VerticalScrollbar)
+            if (m_VerticalScrollbar && !m_Loop)
             {
                 m_VerticalScrollbar.onValueChanged.AddListener(SetVerticalNormalizedPosition);
                 if (Application.isPlaying)
@@ -593,10 +676,18 @@ namespace UnityEngine.UI.ScrollSnaps
             CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
 
             RebuildLayoutGroups();
+            if (contentIsLayoutGroup && Application.isPlaying)
+            {
+                m_LayoutGroupWasEnabled = m_LayoutGroup.enabled;
+                m_LayoutGroup.enabled = false;
+            }
 
             m_Scroller = new Scroller(m_Friction, m_MinDurationMillis, m_MaxDurationMillis, GetInterpolator());
 
             UpdatePrevData();
+            UpdateLayout();
+            Loop(Direction.TowardsStart);
+            Loop(Direction.TowardsEnd);
         }
 
         protected override void OnDisable()
@@ -632,38 +723,45 @@ namespace UnityEngine.UI.ScrollSnaps
                 m_ForwardButton.onClick.RemoveListener(OnForward);
             }
 
+            if (contentIsLayoutGroup && m_LayoutGroupWasEnabled)
+            {
+                m_LayoutGroup.enabled = true;
+            }
+
             m_HasRebuiltLayout = false;
-            m_HasUpdatedLayout = false;
+            m_TrackerSetup = false;
             m_Tracker.Clear();
             m_Velocity = Vector2.zero;
             LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
             base.OnDisable();
         }
-
+        
         /// <summary>
-        /// Updates the size and snap positions of the scroll snap. Call this whenever you change filters, add new children to the content, ect.
+        /// Updates the Scroll Snap. Use only if you need updated info about the Scroll Snap before it has updated itself (e.g. first frame).
+        /// If you need to modify the Scroll Snap (e.g. adding items, manipulating spacing, changing an item's snappability, removing items) please use the provided functions.
         /// </summary>
         public void UpdateLayout()
         {
-            if (m_Content == null)
+            if (m_Content == null || m_Content.childCount == 0)
+            {
                 return;
-
-            m_HasUpdatedLayout = true;
-            Validate();
+            }
+            
+            OnValidate();
             EnsureLayoutHasRebuilt();
             GetValidChildren();
             SetupDrivenTransforms();
+            m_TrackerSetup = true;
             GetChildrenFromStartToEnd();
-
-            RebuildLayoutGroups();
-            Vector2 childOneOrigPosTransformLocalSpace = transform.InverseTransformPoint(firstCalculateChild.position);
+            GetCalculateDistances();
+            
+            SetReferencePos(firstCalculateChild);
 
             ResizeContent();
             GetSnapPositions();
+            GetSnapDistances();
 
-            Vector2 childOneNewPosTransformLocalSpace = transform.InverseTransformPoint(firstCalculateChild.position);
-            Vector2 offset = childOneOrigPosTransformLocalSpace - childOneNewPosTransformLocalSpace;
-            m_Content.anchoredPosition = m_Content.anchoredPosition + offset;
+            ResetContentPos();
         }
 
         private void SetupDrivenTransforms()
@@ -691,11 +789,6 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             m_AvailableForCalculating = new List<RectTransform>();
             m_AvailableForSnappingTo = new List<RectTransform>();
-
-            if (m_Content.childCount < 1)
-            {
-                throw (new MissingReferenceException(contentHasNoChildrenException));
-            }
 
             Func<RectTransform, bool> childIsAvailableForCalculating;
             Func<RectTransform, bool> childIsAvailableForSnappingTo;
@@ -776,15 +869,30 @@ namespace UnityEngine.UI.ScrollSnaps
                     m_ChildrenForSizeFromStartToEnd.Insert(insert, child);
                 }
             }
+        } 
+
+        private void GetCalculateDistances()
+        {
+            if (m_CalculateDistances.Count == 0 || m_CalculateDistances == null)
+            {
+                m_CalculateDistances = new List<float>();
+                for (int i = 0; i < m_ChildrenForSizeFromStartToEnd.Count - 1; i++)
+                {
+                    m_CalculateDistances.Add(DistanceOnAxis(m_ChildrenForSizeFromStartToEnd[i].anchoredPosition, m_ChildrenForSizeFromStartToEnd[i + 1].anchoredPosition, axis));
+                }
+
+                m_CalculateDistances.Add(GetCalculateDistance(m_ChildrenForSizeFromStartToEnd.Count - 1, m_EndSpacing, m_ChildrenForSizeFromStartToEnd.Count));
+            }
         }
 
         private void ResizeContent()
         {
-            float halfViewRect = (viewRect.sizeDelta[axis] / 2);
-            int paddingStart = (int)(halfViewRect - Mathf.Abs(firstCalculateChild.anchoredPosition[axis]));
-            int paddingEnd = (int)(halfViewRect - (m_Content.sizeDelta[axis] - Mathf.Abs(lastCalculateChild.anchoredPosition[axis])));
+            m_ExtraLoopSpace = m_Loop ? (int)(Mathf.Max(m_CalculateDistances.ToArray()) / 2) : 0;
+            float halfViewRect = (viewRectSize / 2);
+            int paddingStart = (int)(halfViewRect - Mathf.Abs(firstCalculateChild.anchoredPosition[axis])) + m_ExtraLoopSpace;
+            int paddingEnd = (int)(halfViewRect - (m_Content.sizeDelta[axis] - Mathf.Abs(lastCalculateChild.anchoredPosition[axis]))) + m_ExtraLoopSpace;
 
-            if (contentIsLayoutGroup)
+            if (!Application.isPlaying &&  contentIsLayoutGroup)
             {
                 if (m_MovementDirection == MovementDirection.Horizontal)
                 {
@@ -813,7 +921,7 @@ namespace UnityEngine.UI.ScrollSnaps
                         child.anchoredPosition = new Vector2(child.anchoredPosition.x, child.anchoredPosition.y - paddingStart);
                     }
                 }
-                float totalSize = Mathf.Abs(lastCalculateChild.anchoredPosition[axis]) + halfViewRect;
+                float totalSize = Mathf.Abs(lastCalculateChild.anchoredPosition[axis]) + halfViewRect + m_ExtraLoopSpace;
                 m_Content.sizeDelta = (movementDirection == MovementDirection.Horizontal) ? new Vector2(totalSize, m_Content.sizeDelta.y) : new Vector2(m_Content.sizeDelta.x, totalSize);
             }
             SetNormalizedPosition(1, 0);
@@ -828,9 +936,12 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             m_ChildrenForSnappingFromStartToEnd = new List<RectTransform>();
             m_SnapPositions = new List<Vector2>();
-            m_TotalScrollableLength = m_Content.sizeDelta[axis] - viewRect.sizeDelta[axis];
-            foreach (RectTransform child in m_ChildrenForSizeFromStartToEnd)
+            m_TotalScrollableLength = m_Content.sizeDelta[axis] - viewRectSize;
+
+            for (int i = 0; i < m_ChildrenForSizeFromStartToEnd.Count; i++)
             {
+                RectTransform child = m_ChildrenForSizeFromStartToEnd[i];
+
                 if (m_AvailableForSnappingTo.Contains(child))
                 {
                     m_ChildrenForSnappingFromStartToEnd.Add(child);
@@ -840,20 +951,106 @@ namespace UnityEngine.UI.ScrollSnaps
                     m_SnapPositions.Add(RoundVector2ToInts(m_Content.anchoredPosition));
                 }
             }
-            SetNormalizedPosition(0, axis);
-            m_StartPosition = RoundVector2ToInts(m_Content.anchoredPosition);
-            SetNormalizedPosition(1, axis);
-            m_EndPosition = RoundVector2ToInts(m_Content.anchoredPosition);
+        }
+
+        private void GetSnapDistances()
+        {
+            if (m_SnapDistances.Count == 0 || m_SnapDistances == null)
+            {
+                m_SnapDistances = new List<float>();
+                float currentDistance = 0;
+                int index = 0;
+                GetCalculateIndexOfChild(m_ChildrenForSnappingFromStartToEnd[0], out index);
+
+                for (int i = 0; i < m_CalculateDistances.Count; i++)
+                {
+                    currentDistance += m_CalculateDistances[LoopIndex(index, m_CalculateDistances.Count)];
+
+                    if (m_ChildrenForSnappingFromStartToEnd.Contains(m_ChildrenForSizeFromStartToEnd[LoopIndex(index + 1, m_ChildrenForSizeFromStartToEnd.Count)]))
+                    {
+                        m_SnapDistances.Add(currentDistance);
+                        currentDistance = 0;
+                    }
+
+                    index++;
+                }
+            }
         }
         #endregion
 
-        #region ProgrammaticallyScroll
+        #region Scrolling
+        private void LateUpdate()
+        {
+            if (!m_Content)
+            {
+                return;
+            }
+
+            EnsureLayoutHasRebuilt();
+            UpdateBounds();
+            bool loop = LoopBasedOnVelocity();
+            float deltaTime = Time.unscaledDeltaTime;
+            Vector2 offset = CalculateOffset(Vector2.zero);
+
+
+            if (m_WaitingForEndScrolling && Time.time - m_TimeOfLastScroll > m_ScrollDelay)
+            {
+                m_WaitingForEndScrolling = false;
+                SelectSnapPos();
+            }
+
+            if (m_Scroller.ComputeScrollOffset())
+            {
+                m_Content.anchoredPosition = m_Scroller.currentPosition;
+            }
+
+            if (!loop)
+            {
+                Vector3 newVelocity = (m_Content.anchoredPosition - m_PrevPosition) / deltaTime;
+                m_Velocity = Vector3.Lerp(m_Velocity, newVelocity, deltaTime * 10);
+            }
+
+            m_ClosestSnapPositionIndex = m_SnapPositions.IndexOf(FindClosestSnapPositionToPosition(m_Content.anchoredPosition));
+
+            if (m_Content.anchoredPosition != m_PrevPosition)
+            {
+                m_OnValueChanged.Invoke(new Vector2(horizontalNormalizedPosition, verticalNormalizedPosition));
+            }
+            if (closestItem != m_PrevClosestItem)
+            {
+                m_ClosestSnapPositionChanged.Invoke(m_ClosestSnapPositionIndex);
+            }
+            if (m_Scroller.isFinished && m_PrevScrolling)
+            {
+                m_SnappedToItem.Invoke(m_ClosestSnapPositionIndex);
+                m_Velocity = Vector2.zero;
+            }
+
+
+            if (m_ViewBounds != m_PrevViewBounds || m_ContentBounds != m_PrevContentBounds || m_Content.anchoredPosition != m_PrevPosition)
+            {
+                UpdateScrollbars(offset);
+            }
+            UpdatePrevData();
+        }
+
+        private void ScrollBarPointerDown(PointerEventData ped)
+        {
+            m_StartMovementEvent.Invoke(StartMovementEventType.ScrollBar);
+        }
+
+        private void ScrollBarPointerUp(PointerEventData ped)
+        {
+            m_LastPressedCamera = ped.pressEventCamera;
+            SelectSnapPos();
+        }
+        
         private void OnBack()
         {
             m_StartMovementEvent.Invoke(StartMovementEventType.ButtonPress);
             scroller.ForceFinish();
-            Vector2 targetPosition = m_Content.anchoredPosition;
-            targetPosition[axis] = m_SnapPositions[Mathf.Clamp(closestSnapPositionIndex - 1, 0, m_SnapPositions.Count - 1)][axis];
+            Vector2 targetPosition = m_SnapPositions[closestSnapPositionIndex];
+            targetPosition[axis] = targetPosition[axis] + (movementDirectionMult * m_SnapDistances[LoopIndex(closestSnapPositionIndex - 1, m_SnapDistances.Count)]);
             scroller.StartScroll(m_Content.anchoredPosition, targetPosition, m_ScrollDurationMillis);
             m_TargetItemSelected.Invoke(closestSnapPositionIndex - 1);
         }
@@ -862,12 +1059,1008 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             m_StartMovementEvent.Invoke(StartMovementEventType.ButtonPress);
             scroller.ForceFinish();
-            Vector2 targetPosition = m_Content.anchoredPosition;
-            targetPosition[axis] = m_SnapPositions[Mathf.Clamp(closestSnapPositionIndex + 1, 0, m_SnapPositions.Count - 1)][axis];
+            Vector2 targetPosition = m_SnapPositions[closestSnapPositionIndex];
+            targetPosition[axis] = targetPosition[axis] - (movementDirectionMult * m_SnapDistances[closestSnapPositionIndex]);
             scroller.StartScroll(m_Content.anchoredPosition, targetPosition, m_ScrollDurationMillis);
             m_TargetItemSelected.Invoke(closestSnapPositionIndex + 1);
         }
 
+        public virtual void OnScroll(PointerEventData data)
+        {
+            if (!IsActive())
+            {
+                return;
+            }
+
+            if (!m_WaitingForEndScrolling)
+            {
+                m_LastPressedCamera = data.pressEventCamera;
+                m_StartMovementEvent.Invoke(StartMovementEventType.OnScroll);
+                m_WaitingForEndScrolling = true;
+                m_Scroller.ForceFinish();
+            }
+            m_TimeOfLastScroll = Time.time;
+
+            EnsureLayoutHasRebuilt();
+            UpdateBounds();
+
+            Vector2 delta = data.scrollDelta;
+            // Down is positive for scroll events, while in UI system up is positive.
+            delta.y *= -1;
+            if (m_MovementDirection == MovementDirection.Vertical)
+            {
+                if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
+                {
+                    delta.y = delta.x;
+                }
+                delta.x = 0;
+            }
+            else
+            {
+                if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
+                {
+                    delta.x = delta.y;
+                }
+                delta.y = 0;
+            }
+
+            Vector2 position = m_Content.anchoredPosition;
+            position += delta * m_ScrollSensitivity;
+            if (m_MovementType == MovementType.Clamped)
+            {
+                position += CalculateOffset(position - m_Content.anchoredPosition);
+            }
+
+            SetContentAnchoredPosition(position);
+            UpdateBounds();
+        }
+
+        public virtual void OnBeginDrag(PointerEventData ped)
+        {
+            if (!IsActive())
+            {
+                return;
+            }
+
+            m_StartMovementEvent.Invoke(StartMovementEventType.OnBeginDrag);
+
+            UpdateBounds();
+
+            m_PointerStartLocalCursor = Vector2.zero;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, ped.position, ped.pressEventCamera, out m_PointerStartLocalCursor);
+            m_ContentStartPosition = m_Content.anchoredPosition;
+
+            m_Scroller.ForceFinish();
+            m_Velocity = Vector2.zero;
+        }
+        
+        public virtual void OnDrag(PointerEventData ped)
+        {
+            if (!IsActive())
+            {
+                return;
+            }
+
+            Vector2 localCursor;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, ped.position, ped.pressEventCamera, out localCursor))
+            {
+                return;
+            }
+
+            UpdateBounds();
+
+            var pointerDelta = localCursor - m_PointerStartLocalCursor;
+            Vector2 localtemp;
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, Input.mousePosition, Camera.main, out localtemp);
+            Vector2 position = m_ContentStartPosition + pointerDelta;
+
+            // Offset to get content into place in the view.
+            Vector2 offset = CalculateOffset(position - m_Content.anchoredPosition);
+            position += offset;
+
+            if (m_MovementType == MovementType.Elastic)
+            {
+                if (offset.x != 0)
+                {
+                    position.x = position.x - RubberDelta(offset.x, m_ViewBounds.size.x);
+                }
+                if (offset.y != 0)
+                {
+                    position.y = position.y - RubberDelta(offset.y, m_ViewBounds.size.y);
+                }
+            }
+
+            SetContentAnchoredPosition(position);
+        }
+
+        public virtual void OnEndDrag(PointerEventData ped)
+        {
+            m_LastPressedCamera = ped.pressEventCamera;
+            SelectSnapPos();
+        }
+
+        private void SelectSnapPos()
+        {
+            Vector2 offset = CalculateOffset(Vector2.zero);
+            Vector2 snapPos;
+
+            if (!m_UseVelocity)
+            {
+                Vector2 finalPos = m_Content.anchoredPosition;
+                if (m_SnapType == SnapType.SnapToNearest)
+                {
+                    snapPos = FindClosestSnapPositionToPosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis), m_Loop);
+                    finalPos[axis] = snapPos[axis];
+                }
+                else if (m_SnapType == SnapType.SnapToLastPassed)
+                {
+                    snapPos = FindLastSnapPositionBeforePosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis), m_Loop);
+                    finalPos[axis] = snapPos[axis];
+                }
+                else
+                {
+                    snapPos = FindNextSnapAfterPosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis), m_Loop);
+                    finalPos[axis] = snapPos[axis];
+                }
+                finalPos.x = Mathf.Clamp(finalPos.x, m_MinPos.x, m_MaxPos.x);
+                finalPos.y = Mathf.Clamp(finalPos.y, m_MinPos.y, m_MaxPos.y);
+                m_Scroller.StartScroll(m_Content.anchoredPosition, finalPos, m_ScrollDurationMillis);
+            }
+            else
+            {
+                Vector2 min = new Vector2(m_MinPos.x - Mathf.Abs(offset.x), m_MinPos.y - Mathf.Abs(offset.y));
+                Vector2 max = new Vector2(m_MaxPos.x + Mathf.Abs(offset.x), m_MaxPos.y + Mathf.Abs(offset.y));
+
+                if (m_Loop)
+                {
+                    m_Scroller.Fling(m_Content.anchoredPosition, m_Velocity);
+                }
+                else
+                {
+                    m_Scroller.Fling(m_Content.anchoredPosition, m_Velocity, min, max);
+                }
+                
+                Vector2 finalPos = m_Scroller.finalPosition;
+                if (m_SnapType == SnapType.SnapToNearest)
+                {
+                    snapPos = FindClosestSnapPositionToPosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis), m_Loop);
+                    finalPos[axis] = snapPos[axis];
+                }
+                else if (m_SnapType == SnapType.SnapToLastPassed)
+                {
+                    snapPos = FindLastSnapPositionBeforePosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis), m_Loop);
+                    finalPos[axis] = snapPos[axis];
+                }
+                else
+                {
+                    snapPos = FindNextSnapAfterPosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis), m_Loop);
+                    finalPos[axis] = snapPos[axis];
+                }
+                finalPos[inverseAxis] = Mathf.Clamp(finalPos[inverseAxis], m_MinPos[inverseAxis], m_MaxPos[inverseAxis]);
+                m_Scroller.SetFinalPosition(finalPos);
+            }
+            m_TargetItemSelected.Invoke(GetSnapIndexOfSnapPosition(snapPos, GetDirectionFromVelocity(m_Velocity, axis)));
+        }
+        #endregion
+
+        #region Looping
+        private bool LoopBasedOnVelocity()
+        {
+            if (m_Velocity[axis] == 0)
+            {
+                return false;
+            }
+
+            return Loop(GetDirectionFromVelocity(m_Velocity, axis));
+        }
+
+        private bool Loop(Direction direction)
+        {
+            if (!m_Loop || !Application.isPlaying)
+            {
+                return false;
+            }
+
+            bool looped = false;
+            float distance = (m_TotalScrollableLength / 2f);
+            Vector2 totalOffset = Vector2.zero;
+            Vector2 contentStartSize = m_Content.sizeDelta;
+
+            if (direction == Direction.TowardsStart)
+            {
+                m_ChildrenForSizeFromStartToEnd.Reverse();
+            }
+
+            for (int i = 0; i < m_ChildrenForSizeFromStartToEnd.Count; i++)
+            {
+                RectTransform child = m_ChildrenForSizeFromStartToEnd[i];
+                Vector3 childLocation = viewRect.InverseTransformPoint(child.position);
+                
+                bool loopAtEnd = (direction == Direction.TowardsStart) && LoopAtEnd(childLocation, distance);
+                bool loopAtStart = (direction == Direction.TowardsEnd) && LoopAtStart(childLocation, distance);
+
+                if (loopAtEnd || loopAtStart)
+                {
+                    looped = true;
+
+                    if (m_ChildrenForSizeFromStartToEnd.Count > 1)
+                    {
+                        SetReferencePos(m_ChildrenForSizeFromStartToEnd[LoopIndex(i + 1, m_ChildrenForSizeFromStartToEnd.Count)]);
+                    }
+
+                    if (loopAtEnd)
+                    {
+                        if (m_ChildrenForSizeFromStartToEnd.Count == 1)
+                        {
+                            Vector2 newContentPos = m_Content.anchoredPosition;
+                            totalOffset[axis] = -m_CalculateDistances[0] * movementDirectionMult;
+                            newContentPos[axis] = m_Content.anchoredPosition[axis] - (m_CalculateDistances[0] * movementDirectionMult);
+                            m_Content.anchoredPosition = newContentPos;
+                        }
+                        else
+                        {
+                            Vector3 newChildPos = child.anchoredPosition;
+                            newChildPos[axis] = movementDirectionMult * ((viewRectSize / 2) + m_ExtraLoopSpace);
+                            child.anchoredPosition = newChildPos;
+
+                            float movementAmout = m_CalculateDistances[m_CalculateDistances.Count - 1];
+                            for (int j = 0; j < m_ChildrenForSizeFromStartToEnd.Count; j++)
+                            {
+                                if (i == j)
+                                {
+                                    continue;
+                                }
+
+                                RectTransform siblingBeingMoved = m_ChildrenForSizeFromStartToEnd[j];
+                                Vector2 newSiblingPos = siblingBeingMoved.anchoredPosition;
+                                newSiblingPos[axis] = newSiblingPos[axis] + (movementAmout * movementDirectionMult);
+                                siblingBeingMoved.anchoredPosition = newSiblingPos;
+                            }
+
+                            float cacheCalculateDistance = m_CalculateDistances[m_CalculateDistances.Count - 1];
+                            m_CalculateDistances.RemoveAt(m_CalculateDistances.Count - 1);
+                            m_CalculateDistances.Insert(0, cacheCalculateDistance);
+
+                            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+                            {
+                                float cacheSnapDistance = m_SnapDistances[m_SnapDistances.Count - 1];
+                                m_SnapDistances.RemoveAt(m_SnapDistances.Count - 1);
+                                m_SnapDistances.Insert(0, cacheSnapDistance);
+                            }
+                        }
+                    }
+                    else if (loopAtStart)
+                    {
+                        if (m_ChildrenForSizeFromStartToEnd.Count == 1)
+                        {
+                            Vector2 newContentPos = m_Content.anchoredPosition;
+                            totalOffset[axis] = m_CalculateDistances[0] * movementDirectionMult;
+                            newContentPos[axis] = m_Content.anchoredPosition[axis] + (m_CalculateDistances[0] * movementDirectionMult);
+                            m_Content.anchoredPosition = newContentPos;
+                        }
+                        else
+                        {
+                            float movementAmount = m_CalculateDistances[m_CalculateDistances.Count - 1];
+                            totalOffset[axis] = totalOffset[axis] + (movementAmount * movementDirectionMult);
+
+                            Vector3 newChildPos = child.anchoredPosition;
+                            newChildPos[axis] = m_ChildrenForSizeFromStartToEnd[LoopIndex(i - 1, m_ChildrenForSizeFromStartToEnd.Count)].anchoredPosition[axis] + (movementAmount * movementDirectionMult);
+                            child.anchoredPosition = newChildPos;
+
+                            float cacheCalculateDistance = m_CalculateDistances[0];
+                            m_CalculateDistances.RemoveAt(0);
+                            m_CalculateDistances.Insert(m_CalculateDistances.Count, cacheCalculateDistance);
+
+                            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+                            {
+                                float cacheSnapDistance = m_SnapDistances[0];
+                                m_SnapDistances.RemoveAt(0);
+                                m_SnapDistances.Insert(m_SnapDistances.Count, cacheSnapDistance);
+                            }
+                        }
+                    }
+
+                    if (m_ChildrenForSizeFromStartToEnd.Count > 1)
+                    {
+                        totalOffset += ResetContentPos();
+                    }
+                }
+            }
+
+            if (looped)
+            {
+                UpdateLayout();
+
+                Vector2 localCursor;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, Input.mousePosition, m_LastPressedCamera, out localCursor);
+                m_PointerStartLocalCursor[axis] = localCursor[axis];
+                m_ContentStartPosition[axis] = m_Content.anchoredPosition[axis];
+
+
+                if (!m_Scroller.isFinished)
+                {
+                    Vector2 sizeShift = ((contentStartSize - m_Content.sizeDelta) / 2);
+                    if ((m_MovementDirection == MovementDirection.Horizontal && direction == Direction.TowardsEnd) || (m_MovementDirection == MovementDirection.Vertical && direction == Direction.TowardsStart))
+                    {
+                        sizeShift = -sizeShift;
+                    }
+                    m_Scroller.ShiftAnimation(totalOffset - sizeShift);
+                }
+
+            }
+
+            if (direction == Direction.TowardsStart)
+            {
+                m_ChildrenForSizeFromStartToEnd.Reverse();
+            }
+
+            return looped;
+        }
+
+        private bool LoopAtEnd(Vector3 childLocation, float distance)
+        {
+            if (m_MovementDirection == MovementDirection.Horizontal)
+            {
+                return childLocation[axis] >= distance;
+            }
+            else
+            {
+                return childLocation[axis] <= -distance;
+            }
+        }
+
+        private bool LoopAtStart(Vector3 childLocation, float distance)
+        {
+            if (m_MovementDirection == MovementDirection.Horizontal)
+            {
+                return childLocation[axis] <= -distance;
+            }
+            else
+            {
+                return childLocation[axis] >= distance;
+            }
+        }
+
+        private void ShiftChildrenForEndSpacing(int calculateIndex, float spacing) //does not manipulate calculateDistances list
+        {
+            if (calculateIndex + 1 < m_ChildrenForSizeFromStartToEnd.Count)
+            {
+                RectTransform child = m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndex, m_ChildrenForSizeFromStartToEnd.Count)];
+                RectTransform childAfterChild = m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndex + 1, m_ChildrenForSizeFromStartToEnd.Count)];
+
+                float movementAmount = (child.anchoredPosition[axis] + (movementDirectionMult * GetCalculateDistance(calculateIndex, spacing, calculateIndex + 1))) - childAfterChild.anchoredPosition[axis];
+                for (int i = calculateIndex + 1; i < m_ChildrenForSizeFromStartToEnd.Count; i++)
+                {
+                    Vector2 newSiblingPos = m_ChildrenForSizeFromStartToEnd[i].anchoredPosition;
+                    newSiblingPos[axis] = newSiblingPos[axis] + movementAmount;
+                    m_ChildrenForSizeFromStartToEnd[i].anchoredPosition = newSiblingPos;
+                }
+            }
+        }
+
+        private void SetParentToContent(RectTransform child)
+        {
+            child.SetParent(m_Content, false);
+            m_Tracker.Add(this, child, DrivenTransformProperties.Anchors);
+            child.anchorMax = new Vector2(0, 1);
+            child.anchorMin = new Vector2(0, 1);
+        }
+
+        private void SetParentToNewParent(RectTransform child, RectTransform newParent)
+        {
+            if (newParent == null)
+            {
+                child.SetParent(GetCanvasTransform(child.parent));
+            }
+            else
+            {
+                child.SetParent(newParent);
+            }
+        }
+
+        private RectTransform GetTrackingChild(int calculateIndex, LockMode lockMode)
+        {
+            if (lockMode == LockMode.Before)
+            {
+                return m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndex - 1, m_ChildrenForSizeFromStartToEnd.Count)];
+            }
+            else
+            {
+                return m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndex + 1, m_ChildrenForSizeFromStartToEnd.Count)];
+            }
+        }
+
+        private List<float> CombineDistance(int middleIndex, List<float> list)
+        {
+            float combinedDistance = list[LoopIndex(middleIndex - 1, list.Count)] + list[LoopIndex(middleIndex, list.Count)];
+            list[LoopIndex(middleIndex - 1, list.Count)] = combinedDistance;
+            list.RemoveAt(middleIndex);
+            return list;
+        }
+
+        private void RemoveViaCombine(RectTransform child)
+        {
+            int calculateIndexOfChild = 0;
+            GetCalculateIndexOfChild(child, out calculateIndexOfChild);
+            CombineDistance(calculateIndexOfChild, m_CalculateDistances);
+
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+            {
+                int snapIndexOfChild = 0;
+                GetSnapIndexOfChild(child, out snapIndexOfChild);
+                CombineDistance(snapIndexOfChild, m_SnapDistances);
+            }
+        }
+
+        private void RemoveViaShift(RectTransform child, float calculateSpacing, LockMode lockMode)
+        {
+            calculateSpacing = Mathf.Max(0, calculateSpacing);
+
+            int calculateIndexOfChild = 0;
+            GetCalculateIndexOfChild(child, out calculateIndexOfChild);
+
+            int snapIndexOfChild = 0;
+            GetSnapIndexOfChild(child, out snapIndexOfChild);
+
+            SetReferencePos(GetTrackingChild(calculateIndexOfChild, lockMode));
+
+            RectTransform calculateBeforeChild = m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndexOfChild - 1, m_ChildrenForSizeFromStartToEnd.Count)];
+            RectTransform calculateAfterChild = m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndexOfChild + 1, m_ChildrenForSizeFromStartToEnd.Count)];
+
+            m_CalculateDistances[LoopIndex(calculateIndexOfChild - 1, m_ChildrenForSizeFromStartToEnd.Count)] = GetCalculateDistance(calculateIndexOfChild - 1, calculateSpacing, calculateIndexOfChild + 1);
+            m_CalculateDistances.RemoveAt(calculateIndexOfChild);
+
+            m_ChildrenForSizeFromStartToEnd.Remove(child);
+            ShiftChildrenForEndSpacing(calculateIndexOfChild - 1, calculateSpacing);
+
+            m_SnapDistances[LoopIndex(snapIndexOfChild - 1, m_SnapDistances.Count)] = GetSnapDistance(snapIndexOfChild - 1, snapIndexOfChild + 1);
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+            {
+                m_SnapDistances.RemoveAt(snapIndexOfChild);
+            }
+        }
+
+        private void InsertChild(RectTransform child, int calculateIndex, float nonAxisPosition, float startSpacing, float endSpacing, RectTransform trackingChild, bool snappable)
+        {
+            SetReferencePos(trackingChild);
+
+            startSpacing = Mathf.Max(0, startSpacing);
+            endSpacing = Mathf.Max(0, endSpacing);
+            RectTransform calculateBeforeChild = m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndex - 1, m_ChildrenForSizeFromStartToEnd.Count)];
+            RectTransform calculateAfterChild = m_ChildrenForSizeFromStartToEnd[LoopIndex(calculateIndex + 1, m_ChildrenForSizeFromStartToEnd.Count)];
+
+            Vector2 newChildPos = Vector2.zero;
+            newChildPos[inverseAxis] = nonAxisPosition;
+            if (calculateIndex > 0)
+            {
+                newChildPos[axis] = calculateBeforeChild.anchoredPosition[axis] + (movementDirectionMult * GetCalculateDistance(calculateIndex - 1, startSpacing, calculateIndex));
+            }
+            child.anchoredPosition = newChildPos;
+
+            ShiftChildrenForEndSpacing(calculateIndex, endSpacing);
+
+            int snapIndexOfChild = 0;
+            GetSnapIndexOfChild(child, out snapIndexOfChild);
+            m_ChildrenForSnappingFromStartToEnd.Insert(snapIndexOfChild, child);
+
+            m_CalculateDistances[LoopIndex(calculateIndex - 1, m_CalculateDistances.Count)] = GetCalculateDistance(calculateIndex - 1, startSpacing, calculateIndex);
+            m_CalculateDistances.Insert(calculateIndex, GetCalculateDistance(calculateIndex, endSpacing, calculateIndex + 1));
+
+            if (snappable)
+            {
+                m_SnapDistances[LoopIndex(snapIndexOfChild - 1, m_SnapDistances.Count)] = GetSnapDistance(snapIndexOfChild - 1, snapIndexOfChild);
+                m_SnapDistances.Insert(snapIndexOfChild, GetSnapDistance(snapIndexOfChild, snapIndexOfChild + 1));
+                if (m_FilterModeForSnapPositions == FilterMode.WhiteList)
+                {
+                    m_SnapPositionsFilter.Add(child);
+                }
+            }
+            else
+            {
+                m_SnapDistances[LoopIndex(snapIndexOfChild - 1, m_SnapDistances.Count)] = GetSnapDistance(snapIndexOfChild - 1, snapIndexOfChild) + GetSnapDistance(snapIndexOfChild, snapIndexOfChild + 1);
+                if (m_FilterModeForSnapPositions == FilterMode.BlackList)
+                {
+                    m_SnapPositionsFilter.Add(child);
+                }
+            }
+
+            if (m_FilterModeForCalculatingSize == FilterMode.WhiteList)
+            {
+                m_CalculatingFilter.Add(child);
+            }
+
+            ResetContentPos();
+
+            UpdateLayout();
+
+            if (!m_Scroller.isFinished)
+            {
+                scroller.ForceFinish();
+                SelectSnapPos();
+            }
+        }
+        #endregion
+
+        #region Public Functions
+
+        /// <summary>
+        /// Gets the normalized position of the scroll snap when it is snapped to the child. 
+        /// </summary>
+        /// <returns>Returns true if the supplied RectTransform is a child of the content.</returns>
+        public bool GetNormalizedPositionOfChild(RectTransform child, out float normalizedPosition) //bool = is child of content
+        {
+            Vector2 startPos = Vector2.zero;
+            if (m_MovementDirection == MovementDirection.Vertical)
+            {
+                startPos = new Vector2(firstCalculateChild.anchoredPosition.x + m_ExtraLoopSpace, firstCalculateChild.anchoredPosition.y + m_ExtraLoopSpace);
+            }
+            else
+            {
+                startPos = new Vector2(firstCalculateChild.anchoredPosition.x - m_ExtraLoopSpace, firstCalculateChild.anchoredPosition.y - m_ExtraLoopSpace);
+            }
+            normalizedPosition = DistanceOnAxis(child.anchoredPosition, startPos/*firstCalculateChild.anchoredPosition*/, axis) / m_TotalScrollableLength;
+            return child.parent == m_Content;
+        }
+
+        /// <summary>
+        /// Gets the position of the content in the content's local coordinates when it is snapped to the child. 
+        /// </summary>
+        /// <returns>Returns true if the supplied RectTransform is a child of the content.</returns>
+        public bool GetPositionOfChild(RectTransform child, out Vector2 position) //bool = is child of content
+        {
+            Vector2 anchoredPos = m_Content.anchoredPosition;
+            float normalizedPos;
+            GetNormalizedPositionOfChild(child, out normalizedPos);
+            SetNormalizedPosition(normalizedPos, axis);
+            position = m_Content.anchoredPosition;
+            m_Content.anchoredPosition = anchoredPos;
+            return child.parent == m_Content;
+        }
+
+        /// <summary>
+        /// Gets the index of the child, based on the snappable items. 
+        /// </summary>
+        /// <returns>Returns true if the the supplied RectTransform is a valid snap position.</returns>
+        public bool GetSnapIndexOfChild(RectTransform child, out int index) //bool = is it a snap position
+        {
+            index = 0;
+            foreach (RectTransform rect in m_ChildrenForSnappingFromStartToEnd)
+            {
+                if(TransformAIsNearerStart(rect, child))
+                {
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return m_ChildrenForSnappingFromStartToEnd.Contains(child);
+        }
+
+        /// <summary>
+        /// Gets the index of the child, based on the calculable items.
+        /// </summary>
+        /// <returns>Returns true if the supplied RectTransform is a calculable item.</returns>
+        public bool GetCalculateIndexOfChild(RectTransform child, out int index)
+        {
+            index = 0;
+            foreach (RectTransform rect in m_ChildrenForSizeFromStartToEnd)
+            {
+                if (TransformAIsNearerStart(rect, child))
+                {
+                    index++;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return (m_ChildrenForSizeFromStartToEnd.Contains(child));
+        }
+
+        /// <summary>
+        /// Gets the normalized position of the content when snapped to the supplied snap position. 
+        /// </summary>
+        /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
+        public bool GetNormalizedPositionOfSnapPosition(int snapPositionIndex, out float normalizedPosition)
+        {
+            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
+            {
+                RectTransform child;
+                GetChildAtSnapIndex(snapPositionIndex, out child);
+                GetNormalizedPositionOfChild(child, out normalizedPosition);
+                return true;
+            }
+            normalizedPosition = 0f;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the position of the content in the content's local coordinates when snapped to the snap position at the specified coordinates. 
+        /// </summary>
+        /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
+        public bool GetSnapPositionAtIndex(int snapPositionIndex, out Vector2 location) //bool = is it a snap position
+        {
+            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
+            {
+                location = m_SnapPositions[snapPositionIndex];
+                return true;
+            }
+            location = Vector2.zero;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the item at the supplied snap index.
+        /// </summary>
+        /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
+        public bool GetChildAtSnapIndex(int snapPositionIndex, out RectTransform child)
+        {
+            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
+            {
+                child = m_ChildrenForSnappingFromStartToEnd[snapPositionIndex];
+                return true;
+            }
+            child = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the item at the supplied calculate index.
+        /// </summary>
+        /// <param name="calculateIndex"></param>
+        /// <param name="child"></param>
+        /// <returns></returns>
+        public bool GetChildAtCalculateIndex(int calculateIndex, out RectTransform child)
+        {
+            if(calculateIndex >= 0 && calculateIndex < m_ChildrenForSizeFromStartToEnd.Count)
+            {
+                child = m_ChildrenForSizeFromStartToEnd[calculateIndex];
+                return true;
+            }
+            child = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Insert a new child into the Scroll Snap.
+        /// </summary>
+        /// <param name="child">The RectTransform to be inserted.</param>
+        /// <param name="calculateIndex">What index you want the child to be inserted at, based on all the calculable items.</param>
+        /// <param name="nonAxisPosition">The position of the child on the non-scrolling axis relative to the top left of the content.</param>
+        /// <param name="startSpacing">The spacing between the end (bottom/right) edge of the previous calculable child, and the start (top/left) edge of the child being added.</param>
+        /// <param name="endSpacing">The spacing between the start (top/left) edge of the next calculable child, and the end (bottom/right) edge of the child being added.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        /// <param name="snappable">If the new child should be snappable.</param>
+        public void InsertChild(RectTransform child, int calculateIndex, float nonAxisPosition, float startSpacing, float endSpacing, LockMode lockMode, bool snappable) //nonAxisPosition is relative to the top left of the content
+        {
+            if (child == null)
+            {
+                return;
+            }
+
+            calculateIndex = Mathf.Clamp(calculateIndex, 0, m_ChildrenForSizeFromStartToEnd.Count);
+            if (m_MovementDirection == MovementDirection.Horizontal)
+            {
+                nonAxisPosition = Mathf.Min(0, nonAxisPosition);
+            }
+            else
+            {
+                nonAxisPosition = Mathf.Max(0, nonAxisPosition);
+            }
+
+            SetParentToContent(child);
+            m_ChildrenForSizeFromStartToEnd.Insert(calculateIndex, child);
+
+            InsertChild(child, calculateIndex, nonAxisPosition, startSpacing, endSpacing, GetTrackingChild(calculateIndex, lockMode), snappable);
+        }
+
+        /// <summary>
+        /// Insert a new child into the Scroll Snap.
+        /// </summary>
+        /// <param name="child">The RectTransform to be inserted.</param>
+        /// <param name="worldPos">The position, in world coordinates, the new child will be placed at.</param>
+        /// <param name="startSpacing">The spacing between the end (bottom/right) edge of the previous calculable child, and the start (top/left) edge of the child being added.</param>
+        /// <param name="endSpacing">The spacing between the start (top/left) edge of the next calculable child, and the end (bottom/right) edge of the child being added.</param>
+        /// <param name="snappable">If the new child should be snappable</param>
+        public void InsertChild(RectTransform child, Vector3 worldPos, float startSpacing, float endSpacing, bool snappable)
+        {
+            if (child == null)
+            {
+                return;
+            }
+
+            Matrix4x4 matrix = Matrix4x4.TRS(m_ContentWorldCorners[1], m_Content.rotation, m_Content.localScale);
+            Vector2 posRelativeToContentTopLeft = matrix.inverse.MultiplyPoint3x4(worldPos);
+
+            posRelativeToContentTopLeft.x = Mathf.Max(0, posRelativeToContentTopLeft.x);
+            posRelativeToContentTopLeft.y = Mathf.Min(0, posRelativeToContentTopLeft.y);
+
+            SetParentToContent(child);
+            child.anchoredPosition = posRelativeToContentTopLeft;
+
+            int calculateIndexOfChild = 0;
+            GetCalculateIndexOfChild(child, out calculateIndexOfChild);
+            m_ChildrenForSizeFromStartToEnd.Insert(calculateIndexOfChild, child);
+
+            InsertChild(child, calculateIndexOfChild, posRelativeToContentTopLeft[inverseAxis], startSpacing, endSpacing, child, snappable);
+        }
+
+        /// <summary>
+        /// Remove a calculable child from the Scroll Snap. The distances between items will remain the same and the child will be deleted.
+        /// </summary>
+        /// <param name="child">The child to be removed.</param>
+        public void RemoveChild(RectTransform child)
+        {
+            if (child == null || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            RemoveViaCombine(child);
+
+            m_SnapPositionsFilter.Remove(child);
+            m_CalculatingFilter.Remove(child);
+
+            Destroy(child.gameObject);
+
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Remove a calculable child from the Scroll Snap. The child will be deleted.
+        /// </summary>
+        /// <param name="child">The child to be removed.</param>
+        /// <param name="calculateSpacing">The spacing between the end (bottom/right) edge of the previous calculable child, and the start (top/left) edge of the next calculable child.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        public void RemoveChild(RectTransform child, float calculateSpacing, LockMode lockMode)
+        {
+            if (child == null || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            RemoveViaShift(child, calculateSpacing, lockMode);
+
+            m_SnapPositionsFilter.Remove(child);
+            m_CalculatingFilter.Remove(child);
+
+            Destroy(child.gameObject);
+
+            ResetContentPos();
+
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Remove a calculable child from the Scroll Snap. The distances between items will remain the same and the child will be reparented to the newParent.
+        /// </summary>
+        /// <param name="child">The child to be removed.</param>
+        /// <param name="newParent">The RectTransform the child will be parented to, if the newParent is null the new child will be reparented to the parent Canvas.</param>
+        public void RemoveChild(RectTransform child, RectTransform newParent) //when newParent null sets to parent parent canvas
+        {
+            if (child == null || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            RemoveViaCombine(child);
+
+            SetParentToNewParent(child, newParent);
+
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Remove a calculable child from the Scroll Snap. The child will be reparented to the newParent.
+        /// </summary>
+        /// <param name="child">The child to be removed.</param>
+        /// <param name="newParent">The RectTransform the child will be parented to, if the newParent is null the new child will be reparented to the parent Canvas.</param>
+        /// <param name="calculateSpacing">The spacing between the end (bottom/right) edge of the previous calculable child, and the start (top/left) edge of the next calculable child.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        public void RemoveChild(RectTransform child, RectTransform newParent, float calculateSpacing, LockMode lockMode)
+        {
+            if (child == null || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            RemoveViaShift(child, calculateSpacing, lockMode);
+
+            m_SnapPositionsFilter.Remove(child);
+            m_CalculatingFilter.Remove(child);
+
+            SetParentToNewParent(child, newParent);
+
+            ResetContentPos();
+
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Tells the Scroll Snap whether it should snap to this child. If the child is not calculable it cannot be snapped to.
+        /// Used for "Locking" or "Unlocking" Items that are already included in the Scroll Snap. (e.g. in a level/map menu)
+        /// If you would like to add/remove a child use the Insert/Remove child functions.
+        /// </summary>
+        /// <param name="child">The child you would like to change the snappability of.</param>
+        /// <param name="snappable">Whether the child should be snapped to or not.</param>
+        public void SetChildSnappability(RectTransform child, bool snappable)
+        {
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child) == snappable || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            int calculateIndex = 0;
+            GetCalculateIndexOfChild(child, out calculateIndex);
+
+            int snapIndex = 0;
+            GetSnapIndexOfChild(child, out snapIndex);
+
+            if (snappable)
+            {
+                m_ChildrenForSnappingFromStartToEnd.Insert(snapIndex, child);
+                m_SnapDistances[LoopIndex(snapIndex - 1, m_SnapDistances.Count)] = GetSnapDistance(snapIndex - 1, snapIndex);
+                m_SnapDistances.Insert(snapIndex, GetSnapDistance(snapIndex, snapIndex + 1));
+                if (m_FilterModeForSnapPositions == FilterMode.WhiteList)
+                {
+                    m_SnapPositionsFilter.Add(child);
+                }
+                else
+                {
+                    m_SnapPositionsFilter.Remove(child);
+                }
+            }
+            else
+            {
+                CombineDistance(snapIndex, m_SnapDistances);
+                if (m_FilterModeForSnapPositions == FilterMode.WhiteList)
+                {
+                    m_SnapPositionsFilter.Remove(child);
+                }
+                else
+                {
+                    m_SnapPositionsFilter.Add(child);
+                }
+            }
+
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Used only in the case of adding a decorative object at runtime (an item that never has been and never will be calculable).
+        /// If you would like to remove a calculable item use the RemoveChild functions.
+        /// </summary>
+        /// <param name="transform">The RectTransform you would like to set uncalculable.</param>
+        public void SetRectTransformUncalculable(RectTransform transform)
+        {
+            if (m_FilterModeForCalculatingSize == FilterMode.BlackList)
+            {
+                m_CalculatingFilter.Add(transform);
+            }
+        }
+
+        /// <summary>
+        /// Sets the spacing between the child and the next calculable item.
+        /// </summary>
+        /// <param name="child">The child you would like to change the spacing of.</param>
+        /// <param name="spacing">The spacing between the end (bottom/right) edge of the child, and the start (top/left) edge of the next calculable child.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        public void SetItemEndSpacing(RectTransform child, float spacing, LockMode lockMode)
+        {
+            if (child == null || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            spacing = Mathf.Max(spacing, 0);
+            int calculateIndex = 0;
+            GetCalculateIndexOfChild(child, out calculateIndex);
+            SetReferencePos(GetTrackingChild(calculateIndex, lockMode));
+
+            ShiftChildrenForEndSpacing(calculateIndex, spacing);
+            m_CalculateDistances[calculateIndex] = GetCalculateDistance(calculateIndex, spacing, calculateIndex + 1);
+
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+            {
+                int snapIndex = 0;
+                GetSnapIndexOfChild(child, out snapIndex);
+                m_SnapDistances[snapIndex] = GetSnapDistance(snapIndex, snapIndex + 1);
+            }
+
+            ResetContentPos();
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Sets the spacing between the child at the calculateIndex and the next calculable item.
+        /// </summary>
+        /// <param name="calculateIndex">The index of the child you would like to modify, based on the calculable items.</param>
+        /// <param name="spacing">The spacing between the end (bottom/right) edge of the child, and the start (top/left) edge of the next calculable child.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        public void SetItemEndSpacing(int calculateIndex, float spacing, LockMode lockMode)
+        {
+            spacing = Mathf.Max(spacing, 0);
+            calculateIndex = Mathf.Clamp(calculateIndex, 0, m_ChildrenForSizeFromStartToEnd.Count - 1);
+            RectTransform child = m_ChildrenForSizeFromStartToEnd[calculateIndex];
+            SetReferencePos(GetTrackingChild(calculateIndex, lockMode));
+
+            ShiftChildrenForEndSpacing(calculateIndex, spacing);
+            m_CalculateDistances[calculateIndex] = GetCalculateDistance(calculateIndex, spacing, calculateIndex + 1);
+
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+            {
+                int snapIndex = 0;
+                GetSnapIndexOfChild(child, out snapIndex);
+                m_SnapDistances[snapIndex] = GetSnapDistance(snapIndex, snapIndex + 1);
+            }
+
+            ResetContentPos();
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Sets the spacing between the child and the previous calculable item.
+        /// </summary>
+        /// <param name="child">The child you would like to change the spacing of.</param>
+        /// <param name="spacing">The spacing between the start (top/left) edge of the child, and the end (bottom/right) edge of the previous calculable child.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        public void SetItemStartSpacing(RectTransform child, float spacing, LockMode lockMode)
+        {
+            if (child == null || !m_ChildrenForSizeFromStartToEnd.Contains(child))
+            {
+                return;
+            }
+
+            spacing = Mathf.Max(spacing, 0);
+            int calculateIndex = 0;
+            GetCalculateIndexOfChild(child, out calculateIndex);
+            SetReferencePos(GetTrackingChild(calculateIndex, lockMode));
+
+            ShiftChildrenForEndSpacing(calculateIndex - 1, spacing);
+            m_CalculateDistances[LoopIndex(calculateIndex - 1, m_CalculateDistances.Count)] = GetCalculateDistance(calculateIndex - 1, spacing, calculateIndex);
+
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+            {
+                int snapIndex = 0;
+                GetSnapIndexOfChild(child, out snapIndex);
+                m_SnapDistances[LoopIndex(snapIndex - 1, m_SnapDistances.Count)] = GetSnapDistance(snapIndex - 1, snapIndex);
+            }
+
+            ResetContentPos();
+            UpdateLayout();
+        }
+
+        /// <summary>
+        /// Sets the spacing between the child and the previous calculable item.
+        /// </summary>
+        /// <param name="calculateIndex">The index of the child you would like to modify, based on the calculable items.</param>
+        /// <param name="spacing">The spacing between the start (top/left) edge of the child, and the end (bottom/right) edge of the previous calculable child.</param>
+        /// <param name="lockMode">Determines which calculable items will be "shifted" and which will be "locked" in the same position, relative to the center of the Scroll Snap.</param>
+        public void SetItemStartSpacing(int calculateIndex, float spacing, LockMode lockMode)
+        {
+            spacing = Mathf.Max(spacing, 0);
+            calculateIndex = Mathf.Clamp(calculateIndex, 0, m_ChildrenForSizeFromStartToEnd.Count - 1);
+            RectTransform child = m_ChildrenForSizeFromStartToEnd[calculateIndex];
+            SetReferencePos(GetTrackingChild(calculateIndex, lockMode));
+
+            ShiftChildrenForEndSpacing(calculateIndex - 1, spacing);
+            m_CalculateDistances[LoopIndex(calculateIndex - 1, m_CalculateDistances.Count)] = GetCalculateDistance(calculateIndex - 1, spacing, calculateIndex);
+
+            if (m_ChildrenForSnappingFromStartToEnd.Contains(child))
+            {
+                int snapIndex = 0;
+                GetSnapIndexOfChild(child, out snapIndex);
+                m_SnapDistances[LoopIndex(snapIndex - 1, m_SnapDistances.Count)] = GetSnapDistance(snapIndex - 1, snapIndex);
+            }
+
+            ResetContentPos();
+            UpdateLayout();
+        }
+        
         /// <summary>
         /// Scrolls to the supplied index in the supplied duration of time.
         /// </summary>
@@ -1009,380 +2202,182 @@ namespace UnityEngine.UI.ScrollSnaps
             m_Scroller.SetFinalPosition(finalPos);
             m_TargetItemSelected.Invoke(m_SnapPositions.IndexOf(snapPos));
         }
-        #endregion
-
-        #region Scrolling
-        private void LateUpdate()
-        {
-            if (!m_Content)
-                return;
-
-            EnsureLayoutHasRebuilt();
-            UpdateBounds();
-            float deltaTime = Time.unscaledDeltaTime;
-            Vector2 offset = CalculateOffset(Vector2.zero);
-
-            if (m_WaitingForEndScrolling && Time.time - m_TimeOfLastScroll > m_ScrollDelay)
-            {
-                m_WaitingForEndScrolling = false;
-                DoEndManualMovement();
-            }
-
-            if (m_Scroller.ComputeScrollOffset())
-            {
-                m_Content.anchoredPosition = m_Scroller.currentPosition;
-            }
-            Vector3 newVelocity = (m_Content.anchoredPosition - m_PrevPosition) / deltaTime;
-            m_Velocity = Vector3.Lerp(m_Velocity, newVelocity, deltaTime * 10);
-
-            m_ClosestSnapPositionIndex = m_SnapPositions.IndexOf(FindClosestSnapPositionToPosition(m_Content.anchoredPosition));
-
-            if (m_Content.anchoredPosition != m_PrevPosition)
-            {
-                m_OnValueChanged.Invoke(new Vector2(horizontalNormalizedPosition, verticalNormalizedPosition));
-            }
-            if (m_ClosestSnapPositionIndex != m_PrevClosestSnap)
-            {
-                m_ClosestSnapPositionChanged.Invoke(m_ClosestSnapPositionIndex);
-            }
-            if (m_Scroller.isFinished && m_PrevScrolling)
-            {
-                m_SnappedToItem.Invoke(m_ClosestSnapPositionIndex);
-                m_Velocity = Vector2.zero;
-            }
-
-
-            if (m_ViewBounds != m_PrevViewBounds || m_ContentBounds != m_PrevContentBounds || m_Content.anchoredPosition != m_PrevPosition)
-            {
-                UpdateScrollbars(offset);
-            }
-            UpdatePrevData();
-        }
-
-        private void ScrollBarPointerDown(PointerEventData ped)
-        {
-            m_StartMovementEvent.Invoke(StartMovementEventType.ScrollBar);
-        }
-
-        private void ScrollBarPointerUp(PointerEventData ped)
-        {
-            DoEndManualMovement();
-        }
-
-        public virtual void OnScroll(PointerEventData data)
-        {
-            if (!IsActive())
-                return;
-
-            if (!m_WaitingForEndScrolling)
-            {
-                m_StartMovementEvent.Invoke(StartMovementEventType.OnScroll);
-                m_WaitingForEndScrolling = true;
-                m_Scroller.ForceFinish();
-            }
-            m_TimeOfLastScroll = Time.time;
-
-            EnsureLayoutHasRebuilt();
-            UpdateBounds();
-
-            Vector2 delta = data.scrollDelta;
-            // Down is positive for scroll events, while in UI system up is positive.
-            delta.y *= -1;
-            if (m_MovementDirection == MovementDirection.Vertical)
-            {
-                if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
-                    delta.y = delta.x;
-                delta.x = 0;
-            }
-            else
-            {
-                if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
-                    delta.x = delta.y;
-                delta.y = 0;
-            }
-
-            Vector2 position = m_Content.anchoredPosition;
-            position += delta * m_ScrollSensitivity;
-            if (m_MovementType == MovementType.Clamped)
-                position += CalculateOffset(position - m_Content.anchoredPosition);
-
-            SetContentAnchoredPosition(position);
-            UpdateBounds();
-        }
-
-        public virtual void OnBeginDrag(PointerEventData ped)
-        {
-            if (!IsActive())
-            {
-                return;
-            }
-
-            m_StartMovementEvent.Invoke(StartMovementEventType.OnBeginDrag);
-
-            UpdateBounds();
-
-            m_PointerStartLocalCursor = Vector2.zero;
-            RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, ped.position, ped.pressEventCamera, out m_PointerStartLocalCursor);
-            m_ContentStartPosition = m_Content.anchoredPosition;
-
-            m_Scroller.ForceFinish();
-            m_Velocity = Vector2.zero;
-        }
-
-        public virtual void OnEndDrag(PointerEventData ped)
-        {
-            DoEndManualMovement();
-        }
-
-        private void DoEndManualMovement()
-        {
-            Vector2 offset = CalculateOffset(Vector2.zero);
-            Vector2 snapPos;
-
-            if (!m_UseVelocity)
-            {
-                Vector2 finalPos = m_Content.anchoredPosition;
-                if (m_SnapType == SnapType.SnapToNearest)
-                {
-                    snapPos = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
-                    finalPos[axis] = snapPos[axis];
-                }
-                else if (m_SnapType == SnapType.SnapToLastPassed)
-                {
-                    snapPos = FindLastSnapPositionBeforePosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis));
-                    finalPos[axis] = snapPos[axis];
-                }
-                else
-                {
-                    snapPos = FindNextSnapAfterPosition(m_Content.anchoredPosition, GetDirectionFromVelocity(m_Velocity, axis));
-                    finalPos[axis] = snapPos[axis];
-                }
-                finalPos.x = Mathf.Clamp(finalPos.x, m_MinPos.x, m_MaxPos.x);
-                finalPos.y = Mathf.Clamp(finalPos.y, m_MinPos.y, m_MaxPos.y);
-                m_Scroller.StartScroll(m_Content.anchoredPosition, finalPos, m_ScrollDurationMillis);
-            }
-            else
-            {
-                Vector2 min = new Vector2(m_MinPos.x - offset.x, m_MinPos.y - offset.y);
-                Vector2 max = new Vector2(m_MaxPos.x - offset.x, m_MaxPos.y - offset.y);
-
-                m_Scroller.Fling(m_Content.anchoredPosition, m_Velocity, min, max);
-                Vector2 finalPos = m_Scroller.finalPosition;
-                if (m_SnapType == SnapType.SnapToNearest)
-                {
-                    snapPos = FindClosestSnapPositionToPosition(finalPos);
-                    finalPos[axis] = snapPos[axis];
-                }
-                else if (m_SnapType == SnapType.SnapToLastPassed)
-                {
-                    snapPos = FindLastSnapPositionBeforePosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis));
-                    finalPos[axis] = snapPos[axis];
-                }
-                else
-                {
-                    snapPos = FindNextSnapAfterPosition(finalPos, GetDirectionFromVelocity(m_Velocity, axis));
-                    finalPos[axis] = snapPos[axis];
-                }
-                finalPos.x = Mathf.Clamp(finalPos.x, m_MinPos.x, m_MaxPos.x);
-                finalPos.y = Mathf.Clamp(finalPos.y, m_MinPos.y, m_MaxPos.y);
-                m_Scroller.SetFinalPosition(finalPos);
-            }
-            m_TargetItemSelected.Invoke(m_SnapPositions.IndexOf(snapPos));
-        }
-
-        public virtual void OnDrag(PointerEventData ped)
-        {
-            if (!IsActive())
-                return;
-
-            Vector2 localCursor;
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(viewRect, ped.position, ped.pressEventCamera, out localCursor))
-                return;
-
-            UpdateBounds();
-
-            var pointerDelta = localCursor - m_PointerStartLocalCursor;
-            Vector2 position = m_ContentStartPosition + pointerDelta;
-
-            // Offset to get content into place in the view.
-            Vector2 offset = CalculateOffset(position - m_Content.anchoredPosition);
-            position += offset;
-
-            if (m_MovementType == MovementType.Elastic)
-            {
-                if (offset.x != 0)
-                    position.x = position.x - RubberDelta(offset.x, m_ViewBounds.size.x);
-                if (offset.y != 0)
-                    position.y = position.y - RubberDelta(offset.y, m_ViewBounds.size.y);
-            }
-
-            SetContentAnchoredPosition(position);
-        }
-        #endregion
-
-        #region Info
-        /// <summary>
-        /// Gets the normalized position of the scroll snap when it is snapped to the child. 
-        /// </summary>
-        /// <returns>Returns true if the supplied RectTransform is a child of the content.</returns>
-        public bool GetNormalizedPositionOfChild(RectTransform child, out float normalizedPosition) //bool = is child of content
-        {
-            normalizedPosition = DistanceOnAxis(child.anchoredPosition, firstCalculateChild.anchoredPosition, axis) / m_TotalScrollableLength;
-            return child.parent == m_Content;
-        }
-
-        /// <summary>
-        /// Gets the position of the content in the contenet's local coordinates when it is snapped to the child. 
-        /// </summary>
-        /// <returns>Returns true if the supplied RectTransform is a child of the content.</returns>
-        public bool GetPositionOfChild(RectTransform child, out Vector2 position) //bool = is child of content
-        {
-            Vector2 anchoredPos = m_Content.anchoredPosition;
-            float normalizedPos;
-            GetNormalizedPositionOfChild(child, out normalizedPos);
-            SetNormalizedPosition(normalizedPos, axis);
-            position = m_Content.anchoredPosition;
-            m_Content.anchoredPosition = anchoredPos;
-            return child.parent == m_Content;
-        }
-
-        /// <summary>
-        /// Gets the snap position index of the child. 
-        /// </summary>
-        /// <returns>Returns true if the the supplied RectTransform is a child of the content.</returns>
-        public bool GetIndexOfChild(RectTransform child, out int index) //bool = is it a snap position
-        {
-            Vector2 childPos;
-            GetPositionOfChild(child, out childPos);
-            index = m_SnapPositions.IndexOf(childPos);
-            return m_SnapPositions.Contains(childPos);
-        }
-
-        /// <summary>
-        /// Gets the normalized position of the content when snapped to the supplied snap position. 
-        /// </summary>
-        /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
-        public bool GetNormalizedPositionOfSnapPosition(int snapPositionIndex, out float normalizedPosition)
-        {
-            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
-            {
-                RectTransform child;
-                GetChildAtIndex(snapPositionIndex, out child);
-                GetNormalizedPositionOfChild(child, out normalizedPosition);
-                return true;
-            }
-            normalizedPosition = 0f;
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the position of the content in the content's local coordinates when snapped to the snap position at the specified coordinates. 
-        /// </summary>
-        /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
-        public bool GetSnapPositionAtIndex(int snapPositionIndex, out Vector2 location) //bool = is it a snap position
-        {
-            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
-            {
-                location = m_SnapPositions[snapPositionIndex];
-                return true;
-            }
-            location = Vector2.zero;
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the child RectTransform of the content for the supplied snap position index. 
-        /// </summary>
-        /// <returns>Returns true if the supplied snap position index is a valid snap position.</returns>
-        public bool GetChildAtIndex(int snapPositionIndex, out RectTransform child)
-        {
-            if (snapPositionIndex >= 0 && snapPositionIndex < m_SnapPositions.Count)
-            {
-                child = m_ChildrenForSnappingFromStartToEnd[snapPositionIndex];
-                return true;
-            }
-            child = null;
-            return false;
-        }
 
         #endregion
 
         #region Calculations
-        private Vector2 FindClosestSnapPositionToPosition(Vector2 position)
+        private Vector2 FindClosestSnapPositionToPosition(Vector2 contentEndPositon, Direction direction, bool loop)
         {
             EnsureLayoutHasRebuilt();
+
+            Vector2 snapPos = (direction == Direction.TowardsEnd) ? m_SnapPositions[0] : m_SnapPositions[m_SnapPositions.Count - 1];
+            int distanceIndex = (direction == Direction.TowardsEnd) ? 0 : m_SnapDistances.Count - 2;
+            
+            float distance = DistanceOnAxis(contentEndPositon, snapPos, axis);
+
+            while (loop || (distanceIndex > -1 && distanceIndex < m_ChildrenForSnappingFromStartToEnd.Count - 1))
+            {
+                if (direction == Direction.TowardsEnd)
+                {
+                    snapPos[axis] -= movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)];
+                    if (DistanceOnAxis(contentEndPositon, snapPos, axis) > distance)
+                    {
+                        snapPos[axis] += movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)]; //revert to previous
+                        break;
+                    }
+                    else
+                    {
+                        distance = DistanceOnAxis(contentEndPositon, snapPos, axis);
+                        distanceIndex++;
+                    }
+                }
+                else
+                {
+                    snapPos[axis] += movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)];
+                    if (DistanceOnAxis(contentEndPositon, snapPos, axis) > distance)
+                    {
+                        snapPos[axis] -= movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)]; //revert to previous
+                        break;
+                    }
+                    else
+                    {
+                        distance = DistanceOnAxis(contentEndPositon, snapPos, axis);
+                        distanceIndex--;
+                    }
+                }
+            }
+            return snapPos;
+        }
+
+        private Vector2 FindClosestSnapPositionToPosition(Vector2 contentEndPosition)
+        {
             Vector3 closest = Vector3.zero;
             float distance = Mathf.Infinity;
 
             foreach (Vector2 snapPosition in m_SnapPositions)
             {
-                if (DistanceOnAxis(position, snapPosition, axis) < distance)
+                if (DistanceOnAxis(contentEndPosition, snapPosition, axis) < distance)
                 {
-                    distance = DistanceOnAxis(position, snapPosition, axis);
+                    distance = DistanceOnAxis(contentEndPosition, snapPosition, axis);
                     closest = snapPosition;
                 }
             }
             return closest;
         }
 
-        private Vector2 FindLastSnapPositionBeforePosition(Vector2 position, Direction direction)
+        private Vector2 FindLastSnapPositionBeforePosition(Vector2 contentEndPosition, Direction direction, bool loop)
         {
             EnsureLayoutHasRebuilt();
-            Vector2 distanceReferencePos = m_StartPosition;
-            if (direction == Direction.TowardsStart)
-            {
-                m_SnapPositions.Reverse();
-                distanceReferencePos = m_EndPosition;
-            }
 
-            Vector2 selectedSnapPosition = Vector2.zero;
-            float distanceFromPosition = Mathf.Infinity;
-            float maxDistance = DistanceOnAxis(distanceReferencePos, position, axis);
+            Vector2 snapPos = (direction == Direction.TowardsEnd) ? m_SnapPositions[0] : m_SnapPositions[m_SnapPositions.Count - 1];
+            int distanceIndex = (direction == Direction.TowardsEnd) ? 0 : m_SnapDistances.Count - 2;
 
-            foreach (Vector2 snapPosition in m_SnapPositions)
+            while (loop || (distanceIndex > -1 && distanceIndex < m_ChildrenForSnappingFromStartToEnd.Count - 1))
             {
-                if (DistanceOnAxis(position, snapPosition, axis) < distanceFromPosition && DistanceOnAxis(distanceReferencePos, snapPosition, axis) <= maxDistance)
+                if (direction == Direction.TowardsEnd)
                 {
-                    distanceFromPosition = DistanceOnAxis(position, snapPosition, axis);
-                    selectedSnapPosition = snapPosition;
+                    if (ContentPosAIsNearerEnd(snapPos, contentEndPosition))
+                    {
+                        snapPos[axis] += movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex - 1, m_SnapDistances.Count)]; //revert to previous
+                        break;
+                    }
+                    else
+                    {
+                        snapPos[axis] -= movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)];
+                        distanceIndex++;
+                    }
+                }
+                else
+                {
+                    if (ContentPosAIsNearerStart(snapPos, contentEndPosition))
+                    {
+                        snapPos[axis] -= movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex + 1, m_SnapDistances.Count)]; //revert to previous
+                        break;
+                    }
+                    else
+                    {
+                        snapPos[axis] += movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)];
+                        distanceIndex--;
+                    }
                 }
             }
 
-            if (direction == Direction.TowardsStart)
-            {
-                m_SnapPositions.Reverse();
-            }
-            return selectedSnapPosition;
+            return snapPos;
         }
 
-        private Vector2 FindNextSnapAfterPosition(Vector2 position, Direction direction)
+        private Vector2 FindNextSnapAfterPosition(Vector2 contentEndPosition, Direction direction, bool loop)
         {
             EnsureLayoutHasRebuilt();
-            Vector2 distanceReferencePos = m_StartPosition;
-            if (direction == Direction.TowardsEnd)
-            {
-                m_SnapPositions.Reverse();
-                distanceReferencePos = m_EndPosition;
-            }
+            
+            Vector2 snapPos = (direction == Direction.TowardsEnd) ? m_SnapPositions[0] : m_SnapPositions[m_SnapPositions.Count - 1];
+            int distanceIndex = (direction == Direction.TowardsEnd) ? 0 : m_SnapDistances.Count - 2;
 
-            Vector2 selectedSnapPosition = Vector2.zero;
-            float distanceFromPosition = Mathf.Infinity;
-            float maxDistance = DistanceOnAxis(distanceReferencePos, position, axis);
-
-            foreach (Vector2 snapPosition in m_SnapPositions)
+            while (loop || (distanceIndex > -1 && distanceIndex < m_ChildrenForSnappingFromStartToEnd.Count - 1))
             {
-                if (DistanceOnAxis(position, snapPosition, axis) < distanceFromPosition && DistanceOnAxis(distanceReferencePos, snapPosition, axis) <= maxDistance)
+                //if we're moving towards the end we want to go through the items from start -> end (& beyond for looping)
+                if (direction == Direction.TowardsEnd)
                 {
-                    distanceFromPosition = DistanceOnAxis(position, snapPosition, axis);
-                    selectedSnapPosition = snapPosition;
+                    if(ContentPosAIsNearerEnd(snapPos, contentEndPosition)) //we have found the one that is beyond the end point
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        snapPos[axis] -= movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)];
+                        distanceIndex++;
+                    }
+                }
+                //if we're moving towards the start we want to go through the items from end -> start (& beyond for looping)
+                else
+                {
+                    if (ContentPosAIsNearerStart(snapPos, contentEndPosition)) //we have found the one that is beyond the end point
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        snapPos[axis] += movementDirectionMult * m_SnapDistances[LoopIndex(distanceIndex, m_SnapDistances.Count)];
+                        distanceIndex--;
+                    }
+                }
+            }
+            return snapPos;
+        }
+
+        private int GetSnapIndexOfSnapPosition(Vector2 snapPosition, Direction direction)
+        {
+            Vector2 pos = (direction == Direction.TowardsEnd) ? m_SnapPositions[0] : m_SnapPositions[m_SnapPositions.Count - 1];
+            int index = (direction == Direction.TowardsEnd) ? 0 : m_SnapDistances.Count - 2;
+            while (true)
+            {
+                if (direction == Direction.TowardsEnd)
+                {
+                    if (ContentPosAIsNearerStart(pos, snapPosition))
+                    {
+                        pos[axis] -= movementDirectionMult * m_SnapDistances[LoopIndex(index, m_SnapDistances.Count)];
+                        index++;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    if (ContentPosAIsNearerEnd(pos, snapPosition))
+                    {
+                        pos[axis] += movementDirectionMult * m_SnapDistances[LoopIndex(index, m_SnapDistances.Count)];
+                        index--;
+                    }
+                    else
+                    {
+                        index++;
+                        break;
+                    }
                 }
             }
 
-            if (direction == Direction.TowardsEnd)
-            {
-                m_SnapPositions.Reverse();
-            }
-            return selectedSnapPosition;
+            return LoopIndex(index, m_SnapDistances.Count);
         }
 
         private Direction GetDirectionFromVelocity(Vector2 velocity, int axis)
@@ -1418,6 +2413,16 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private bool TransformAIsNearerStart(RectTransform transformA, RectTransform transformB)
         {
+            if (transformA == null)
+            {
+                return false;
+            }
+
+            if (transformB == null)
+            {
+                return true;
+            }
+
             if (movementDirection == MovementDirection.Horizontal)
             {
                 return transformA.anchoredPosition[axis] < transformB.anchoredPosition[axis];
@@ -1425,6 +2430,30 @@ namespace UnityEngine.UI.ScrollSnaps
             else
             {
                 return transformA.anchoredPosition[axis] > transformB.anchoredPosition[axis];
+            }
+        }
+
+        private bool ContentPosAIsNearerStart(Vector2 posA, Vector2 posB)
+        {
+            if (movementDirection == MovementDirection.Horizontal)
+            {
+                return posA[axis] > posB[axis];
+            }
+            else
+            {
+                return posA[axis] < posB[axis];
+            }
+        }
+
+        private bool ContentPosAIsNearerEnd(Vector2 posA, Vector2 posB)
+        {
+            if (movementDirection == MovementDirection.Horizontal)
+            {
+                return posA[axis] < posB[axis];
+            }
+            else
+            {
+                return posA[axis] > posB[axis];
             }
         }
 
@@ -1468,6 +2497,67 @@ namespace UnityEngine.UI.ScrollSnaps
 
             return interpolator;
         }
+        
+        /// <summary>
+        /// The calculate distances must be calculated and both children must be added before calling this.
+        /// </summary>
+        private float GetSnapDistance(int startSnapIndex, int endSnapIndex)
+        {
+            int startCalculateIndex = 0;
+            GetCalculateIndexOfChild(m_ChildrenForSnappingFromStartToEnd[LoopIndex(startSnapIndex, m_ChildrenForSnappingFromStartToEnd.Count)], out startCalculateIndex);
+
+            int endCalculateIndex = 0;
+            GetCalculateIndexOfChild(m_ChildrenForSnappingFromStartToEnd[LoopIndex(endSnapIndex, m_ChildrenForSnappingFromStartToEnd.Count)], out endCalculateIndex);
+
+            float distanceToSnap = 0;
+            while (true)
+            {
+                distanceToSnap += m_CalculateDistances[LoopIndex(startCalculateIndex, m_CalculateDistances.Count)];
+
+                if (LoopIndex(startCalculateIndex + 1, m_CalculateDistances.Count) == endCalculateIndex)
+                {
+                    break;
+                }
+
+                startCalculateIndex++;
+            }
+            return distanceToSnap;
+        }
+
+        /// <summary>
+        /// Make sure that both of the children have been added to m_ChildrenForSizeFromStartToEnd before calling.
+        /// </summary>
+        private float GetCalculateDistance(int startCalculateIndex, float spacing, int endCalculateIndex)
+        {
+            Vector3[] childOneCorners = new Vector3[4];
+            m_ChildrenForSizeFromStartToEnd[LoopIndex(startCalculateIndex, m_ChildrenForSizeFromStartToEnd.Count)].GetLocalCorners(childOneCorners);
+
+            Vector3[] childTwoCorners = new Vector3[4];
+            m_ChildrenForSizeFromStartToEnd[LoopIndex(endCalculateIndex, m_ChildrenForSizeFromStartToEnd.Count)].GetLocalCorners(childTwoCorners);
+
+            return DistanceOnAxis(childOneCorners[3], Vector2.zero, axis) + spacing + DistanceOnAxis(childTwoCorners[1], Vector2.zero, axis);
+        }
+        
+        private int LoopIndex(int index, int count)
+        {
+            if (count == 0)
+            {
+                return 0;
+            }
+
+            if (index >= count)
+            {
+                return index % count;
+            }
+
+            if (index < 0)
+            {
+                int test = (index % count == 0) ? 0 : count + (index % count);
+                return test;
+            }
+
+            return index;
+        }
         #endregion
 
         #region Control
@@ -1478,8 +2568,11 @@ namespace UnityEngine.UI.ScrollSnaps
 
         public virtual void SetLayoutHorizontal()
         {
-            m_Tracker.Clear();
-            UpdateLayout();
+            if (Application.isPlaying)
+            {
+                m_Tracker.Clear();
+                UpdateLayout();
+            }
         }
 
         public virtual void SetLayoutVertical()
@@ -1490,7 +2583,7 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private void RebuildLayoutGroups()
         {
-            if (contentIsLayoutGroup)
+            if (contentIsLayoutGroup && m_LayoutGroup.enabled)
             {
                 m_LayoutGroup.CalculateLayoutInputHorizontal();
                 m_LayoutGroup.CalculateLayoutInputVertical();
@@ -1525,9 +2618,9 @@ namespace UnityEngine.UI.ScrollSnaps
             }
         }
 
-        private void EnsureLayoutUpdated()
+        private void EnsureTrackerSetup()
         {
-            if (!m_HasUpdatedLayout)
+            if (!m_TrackerSetup)
             {
                 UpdateLayout();
             }
@@ -1539,7 +2632,7 @@ namespace UnityEngine.UI.ScrollSnaps
         private void SetNormalizedPosition(float value, int axis)
         {
             EnsureLayoutHasRebuilt();
-            EnsureLayoutUpdated();
+            EnsureTrackerSetup();
             UpdateBounds();
             // How much the content is larger than the view.
             float scrollableLength = m_ContentBounds.size[axis] - m_ViewBounds.size[axis];
@@ -1555,7 +2648,6 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 localPosition[axis] = newLocalPosition;
                 m_Content.localPosition = localPosition;
-                m_Velocity[axis] = 0;
                 UpdateBounds();
             }
         }
@@ -1566,7 +2658,9 @@ namespace UnityEngine.UI.ScrollSnaps
             m_ContentBounds = GetBounds();
 
             if (m_Content == null)
+            {
                 return;
+            }
 
             // Make sure content bounds are at least as large as view by adding padding if not.
             // One might think at first that if the content is smaller than the view, scrolling should be allowed.
@@ -1593,7 +2687,7 @@ namespace UnityEngine.UI.ScrollSnaps
             m_ContentBounds.center = contentPos;
         }
 
-        private readonly Vector3[] m_Corners = new Vector3[4];
+        private readonly Vector3[] m_ContentWorldCorners = new Vector3[4];
         private Bounds GetBounds()
         {
             if (m_Content == null)
@@ -1603,10 +2697,10 @@ namespace UnityEngine.UI.ScrollSnaps
             var vMax = new Vector3(float.MinValue, float.MinValue, float.MinValue);
 
             var toLocal = viewRect.worldToLocalMatrix;
-            m_Content.GetWorldCorners(m_Corners);
+            m_Content.GetWorldCorners(m_ContentWorldCorners);
             for (int j = 0; j < 4; j++)
             {
-                Vector3 v = toLocal.MultiplyPoint3x4(m_Corners[j]);
+                Vector3 v = toLocal.MultiplyPoint3x4(m_ContentWorldCorners[j]);
                 vMin = Vector3.Min(v, vMin);
                 vMax = Vector3.Max(v, vMax);
             }
@@ -1628,9 +2722,13 @@ namespace UnityEngine.UI.ScrollSnaps
                 min.x += delta.x;
                 max.x += delta.x;
                 if (min.x > m_ViewBounds.min.x)
+                {
                     offset.x = m_ViewBounds.min.x - min.x;
+                }
                 else if (max.x < m_ViewBounds.max.x)
+                {
                     offset.x = m_ViewBounds.max.x - max.x;
+                }
             }
 
             if (movementDirection == MovementDirection.Vertical || (movementDirection == MovementDirection.Horizontal && !m_LockOtherDirection))
@@ -1638,9 +2736,13 @@ namespace UnityEngine.UI.ScrollSnaps
                 min.y += delta.y;
                 max.y += delta.y;
                 if (max.y < m_ViewBounds.max.y)
+                {
                     offset.y = m_ViewBounds.max.y - max.y;
+                }
                 else if (min.y > m_ViewBounds.min.y)
+                {
                     offset.y = m_ViewBounds.min.y - min.y;
+                }
             }
 
             return offset;
@@ -1651,9 +2753,13 @@ namespace UnityEngine.UI.ScrollSnaps
             if (m_HorizontalScrollbar)
             {
                 if (m_ContentBounds.size.x > 0)
+                {
                     m_HorizontalScrollbar.size = Mathf.Clamp01((m_ViewBounds.size.x - Mathf.Abs(offset.x)) / m_ContentBounds.size.x);
+                }
                 else
+                {
                     m_HorizontalScrollbar.size = 1;
+                }
 
                 m_HorizontalScrollbar.value = horizontalNormalizedPosition;
             }
@@ -1661,9 +2767,13 @@ namespace UnityEngine.UI.ScrollSnaps
             if (m_VerticalScrollbar)
             {
                 if (m_ContentBounds.size.y > 0)
+                {
                     m_VerticalScrollbar.size = Mathf.Clamp01((m_ViewBounds.size.y - Mathf.Abs(offset.y)) / m_ContentBounds.size.y);
+                }
                 else
+                {
                     m_VerticalScrollbar.size = 1;
+                }
 
                 m_VerticalScrollbar.value = verticalNormalizedPosition;
             }
@@ -1674,9 +2784,13 @@ namespace UnityEngine.UI.ScrollSnaps
             if (m_LockOtherDirection)
             {
                 if (movementDirection == MovementDirection.Vertical)
+                {
                     position.x = m_Content.anchoredPosition.x;
+                }
                 if (movementDirection == MovementDirection.Horizontal)
+                {
                     position.y = m_Content.anchoredPosition.y;
+                }
             }
 
             if (position != m_Content.anchoredPosition)
@@ -1684,6 +2798,22 @@ namespace UnityEngine.UI.ScrollSnaps
                 m_Content.anchoredPosition = position;
                 UpdateBounds();
             }
+        }
+
+        private Vector2 m_ReferencePos;
+        private RectTransform m_TrackingChild;
+        private void SetReferencePos(RectTransform trackingChild)
+        {
+            m_TrackingChild = trackingChild;
+            m_ReferencePos = viewRect.InverseTransformPoint(trackingChild.position);
+        }
+
+        private Vector2 ResetContentPos()
+        {
+            Vector2 newPos = viewRect.InverseTransformPoint(m_TrackingChild.position);
+            Vector2 offset = m_ReferencePos - newPos;
+            m_Content.anchoredPosition = m_Content.anchoredPosition + offset;
+            return offset;
         }
 
         private void UpdatePrevData()
@@ -1699,17 +2829,38 @@ namespace UnityEngine.UI.ScrollSnaps
 
             m_PrevViewBounds = m_ViewBounds;
             m_PrevContentBounds = m_ContentBounds;
-            m_PrevClosestSnap = m_ClosestSnapPositionIndex;
+            m_PrevClosestItem = closestItem;
             m_PrevScrolling = !m_Scroller.isFinished;
         }
 
         protected void SetDirtyCaching()
         {
             if (!IsActive())
+            {
                 return;
+            }
 
             CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
             LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
+        }
+
+        private Transform GetCanvasTransform(Transform transform)
+        {
+            if (transform.GetComponent<Canvas>() != null)
+            {
+                return transform;
+            }
+            else
+            {
+                if (transform.parent != null)
+                {
+                    return GetCanvasTransform(transform.parent);
+                }
+                else
+                {
+                    return transform;
+                }
+            }
         }
         #endregion
 
@@ -1777,6 +2928,31 @@ namespace UnityEngine.UI.ScrollSnaps
                         }
                     }
                 }
+
+                if (m_Loop && m_Content.childCount > 0 && !Application.isPlaying)
+                {
+                    Vector3[] firstChildCorners = new Vector3[4];
+                    float distance = GetCalculateDistance(m_ChildrenForSizeFromStartToEnd.Count - 1, m_EndSpacing, 0);
+                    firstCalculateChild.GetLocalCorners(firstChildCorners);
+
+                    Vector2 matrixPos = Vector2.zero;
+                    matrixPos[axis] = lastCalculateChild.position[axis] + distance;
+                    matrixPos[inverseAxis] = firstCalculateChild.position[inverseAxis];
+
+                    Matrix4x4 matrix = Matrix4x4.TRS(matrixPos, firstCalculateChild.rotation, firstCalculateChild.localScale);
+
+                    Vector3[] gizmoCorners = new Vector3[4];
+                    gizmoCorners[0] = matrix.MultiplyPoint3x4(firstChildCorners[0]);
+                    gizmoCorners[1] = matrix.MultiplyPoint3x4(firstChildCorners[1]);
+                    gizmoCorners[2] = matrix.MultiplyPoint3x4(firstChildCorners[2]);
+                    gizmoCorners[3] = matrix.MultiplyPoint3x4(firstChildCorners[3]);
+
+                    Gizmos.color = Color.cyan;
+                    Gizmos.DrawLine(gizmoCorners[1], gizmoCorners[2]);
+                    Gizmos.DrawLine(gizmoCorners[2], gizmoCorners[3]);
+                    Gizmos.DrawLine(gizmoCorners[3], gizmoCorners[0]);
+                    Gizmos.DrawLine(gizmoCorners[0], gizmoCorners[1]);
+                }
             }
         }
 
@@ -1812,13 +2988,20 @@ namespace UnityEngine.UI.ScrollSnaps
             m_ScrollSensitivity = Mathf.Max(m_ScrollSensitivity, 0);
             m_ScrollDelay = Mathf.Max(m_ScrollDelay, 0);
 
-            if (m_Scroller != null && (m_Scroller.interpolator != GetInterpolator() || m_Tension != m_PrevTension || m_Friction != m_PrevFriction || m_MinDurationMillis != m_PrevMinDuration || m_MaxDurationMillis != m_PrevMaxDuration))
+            m_EndSpacing = Mathf.Max(m_EndSpacing, 0);
+
+            if (m_ChildrenForSizeFromStartToEnd.Count == 1)
+            {
+                m_EndSpacing = Mathf.Max(m_EndSpacing, viewRectSize);
+            }
+
+
+            if (m_Scroller != null && (m_Tension != m_PrevTension || m_Friction != m_PrevFriction || m_MinDurationMillis != m_PrevMinDuration || m_MaxDurationMillis != m_PrevMaxDuration))
             {
                 m_PrevTension = m_Tension;
                 m_PrevFriction = m_Friction;
                 m_PrevMinDuration = m_MinDurationMillis;
                 m_PrevMaxDuration = m_MaxDurationMillis;
-                m_Scroller.AbortAnimation();
                 m_Scroller = new Scroller(m_Friction, m_MinDurationMillis, m_MaxDurationMillis, GetInterpolator());
             }
 

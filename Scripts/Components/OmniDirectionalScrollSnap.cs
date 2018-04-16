@@ -544,7 +544,7 @@ namespace UnityEngine.UI.ScrollSnaps
 
             ResizeContent();
             GetSnapPositions();
-
+            
             Vector2 childOneNewPosTransformLocalSpace = transform.InverseTransformPoint(leftChild.position);
             Vector2 offset = childOneOrigPosTransformLocalSpace - childOneNewPosTransformLocalSpace;
             m_Content.anchoredPosition = m_Content.anchoredPosition + offset;
@@ -680,7 +680,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 }
             }
 
-            foreach (RectTransform child in m_ChildrenForSizeFromTopToBottom)
+            foreach(RectTransform child in m_ChildrenForSizeFromTopToBottom)
             {
                 if (m_AvailableForSnappingTo.Contains(child))
                 {
@@ -688,7 +688,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 }
             }
 
-            foreach (RectTransform child in m_ChildrenForSnappingFromLeftToRight)
+            foreach(RectTransform child in m_ChildrenForSnappingFromLeftToRight)
             {
                 if (m_AvailableForSnappingTo.Contains(child))
                 {
@@ -1135,7 +1135,7 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             return new Vector2((int)vector.x, (int)vector.y);
         }
-
+        
         private float Hypot(float x, float y)
         {
             return Mathf.Sqrt(x * x + y * y);

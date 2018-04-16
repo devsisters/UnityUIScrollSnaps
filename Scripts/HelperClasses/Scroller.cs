@@ -358,6 +358,17 @@ namespace UnityEngine.UI.ScrollSnaps
         }
 
         /// <summary>
+        /// Shifts the start and end positions of the animation by the offset, does not affect the duration or speed.
+        /// </summary>
+        public void ShiftAnimation(Vector2 offset)
+        {
+            m_StartX = m_StartX + (int)offset.x;
+            m_StartY = m_StartY + (int)offset.y;
+            m_FinalX = m_FinalX + (int)offset.x;
+            m_FinalY = m_FinalY + (int)offset.y;
+        }
+
+        /// <summary>
         /// Extend the scroll animation. This allows the running animation to scroll further and longer in combination with SetFinalPosition().
         /// </summary>
         /// <param name="extendMS">Additional time to add to the animation in milliseconds.</param>
@@ -469,6 +480,15 @@ namespace UnityEngine.UI.ScrollSnaps
             m_DeltaX = dx;
             m_DeltaY = dy;
             m_DurationReciprocal = 1.0f / (float)m_Duration;
+        }
+
+        /// <summary>
+        /// Start scrolling based on a velocity. The distance traveled will depend on the velocity.
+        /// </summary>
+        /// <param name="startPos">The initial velocity in units per second.</param>
+        public void Fling(Vector2 startPos, Vector2 velocity)
+        {
+            Fling((int)startPos.x, (int)startPos.y, (int)velocity.x, (int)velocity.y, int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
         }
 
         /// <summary>

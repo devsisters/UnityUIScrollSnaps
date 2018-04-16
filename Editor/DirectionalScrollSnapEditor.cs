@@ -23,7 +23,8 @@ namespace UnityEngine.UI.ScrollSnaps
             showSnapError,
             showTension,
             showFriction,
-            showDrawGizmos;
+            showDrawGizmos,
+            showEndSpacing;
 
         private SerializedProperty
             content,
@@ -56,7 +57,9 @@ namespace UnityEngine.UI.ScrollSnaps
             snappedToItem,
             targetItemSelected,
             drawGizmos,
-            friction;
+            friction,
+            loop,
+            endSpacing;
 
         DirectionalScrollSnap scrollSnap;
 
@@ -89,6 +92,8 @@ namespace UnityEngine.UI.ScrollSnaps
             vertScrollBar = serializedObject.FindProperty("m_VerticalScrollbar");
             backButton = serializedObject.FindProperty("m_BackButton");
             forwardButton = serializedObject.FindProperty("m_ForwardButton");
+            loop = serializedObject.FindProperty("m_Loop");
+            endSpacing = serializedObject.FindProperty("m_EndSpacing");
             onValueChanged = serializedObject.FindProperty("m_OnValueChanged");
             startMovement = serializedObject.FindProperty("m_StartMovementEvent");
             closestItemChanged = serializedObject.FindProperty("m_ClosestSnapPositionChanged");
@@ -108,6 +113,8 @@ namespace UnityEngine.UI.ScrollSnaps
             showFriction.valueChanged.AddListener(Repaint);
             showDrawGizmos = new AnimBool(scrollSnap.content != null);
             showDrawGizmos.valueChanged.AddListener(Repaint);
+            showEndSpacing = new AnimBool(loop.boolValue);
+            showEndSpacing.valueChanged.AddListener(Repaint);
         }
 
         public override void OnInspectorGUI()
@@ -123,6 +130,16 @@ namespace UnityEngine.UI.ScrollSnaps
             EditorGUILayout.PropertyField(lockOtherDirection);
             EditorGUILayout.PropertyField(movementType, new GUIContent("Movement Type", "Clamped mode keeps the content within the bounds of the Scroll Snap. Elastic bounces the content when it gets to the edge of the Scroll Snap."));
             EditorGUILayout.PropertyField(snapType, new GUIContent("Snap Type", "Determines how the scroll snap will decide which item to snap to. If Use Velocity is true it will calculate where the scroll snap would land and then choose based on that position."));
+            
+            EditorGUILayout.PropertyField(loop);
+            showEndSpacing.target = loop.boolValue;
+            if (EditorGUILayout.BeginFadeGroup(showEndSpacing.faded))
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(endSpacing);
+                EditorGUI.indentLevel--;
+            }
+            EditorGUILayout.EndFadeGroup();
 
             EditorGUILayout.Space();
 
@@ -275,7 +292,7 @@ namespace UnityEngine.UI.ScrollSnaps
 
             if (GUILayout.Button("Update"))
             {
-                scrollSnap.UpdateLayout();
+                scrollSnap.UpdateLayout(); 
             }
 
             serializedObject.ApplyModifiedProperties();
