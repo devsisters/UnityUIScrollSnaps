@@ -136,7 +136,7 @@ namespace UnityEngine.UI.ScrollSnaps
             if (EditorGUILayout.BeginFadeGroup(showEndSpacing.faded))
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(endSpacing);
+                EditorGUILayout.PropertyField(endSpacing, new GUIContent("End Spacing", "The distance between the end edge of the last item and the start edge of the first item, after the first or last item has looped."));
                 EditorGUI.indentLevel--;
             }
             EditorGUILayout.EndFadeGroup();
