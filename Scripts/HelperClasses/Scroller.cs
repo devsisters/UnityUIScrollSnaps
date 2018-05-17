@@ -13,285 +13,29 @@ namespace UnityEngine.UI.ScrollSnaps
     /// </summary>
     public class Scroller
     {
+        #region Variables
         public enum Mode
         {
             Scrolling,
             Flinging
         }
 
-        private Interpolator m_Interpolator = new ViscousFluidInterpolator();
-
-        private Mode m_Mode;
-
-        private int m_StartX;
-        private int m_StartY;
-        private int m_FinalX;
-        private int m_FinalY;
-
-        private int m_MinX;
-        private int m_MaxX;
-        private int m_MinY;
-        private int m_MaxY;
-
-        private int m_CurrX;
-        private int m_CurrY;
-        private float m_StartTime;
-        private int m_Duration;
-        private float m_DurationReciprocal;
-        private float m_DeltaX;
-        private float m_DeltaY;
-        private bool m_Finished = true;
-
-        private float m_Velocity;
-        private float m_CurrVelocity;
-        private int m_Distance;
-
-        private static readonly int DEFAULT_DURATION = 250;
-        private static readonly int DEFAULT_MIN_DURATION = 250;
-        private static readonly int DEFAULT_MAX_DURATION = 2000;
-        private int m_MinDuration;
-        private int m_MaxDuration;
-
-        private const float SECONDS_TO_MILLIS = 1000f;
-
-        private static float DECELERATION_RATE = Mathf.Log(0.78f) / Mathf.Log(0.9f);
-        private static readonly float INFLEXION = 0.35f; // Tension lines cross at (INFLEXION, 1)
-        private static readonly float START_TENSION = 0.5f;
-        private static readonly float END_TENSION = 1.0f;
-        private static readonly float P1 = START_TENSION * INFLEXION;
-        private static readonly float P2 = 1.0f - END_TENSION * (1.0f - INFLEXION);
-
-        private static readonly int NB_SAMPLES = 100;
-        private static readonly float[] SPLINE_POSITION = new float[NB_SAMPLES + 1];
-        private static readonly float[] SPLINE_TIME = new float[NB_SAMPLES + 1];
-
-        private static readonly float DEFAULT_FLING_FRICTION = .25f;
-        // A context-specific coefficient adjusted to physical values.
-        private float mPhysicalCoeff;
-        private float m_FlingFriction;
-        private float mDeceleration;
-        private float mPpi;
-
-        /// <summary>
-        /// Create a scroller with default friction, min/max durations, and interpolator.
-        /// </summary>
-        public Scroller()
-        {
-            float x_min = 0.0f;
-            float y_min = 0.0f;
-            for (int i = 0; i < NB_SAMPLES; i++)
-            {
-                float alpha = (float)i / NB_SAMPLES;
-                float x_max = 1.0f;
-                float x, tx, coef;
-                while (true)
-                {
-                    x = x_min + (x_max - x_min) / 2.0f;
-                    coef = 3.0f * x * (1.0f - x);
-                    tx = coef * ((1.0f - x) * P1 + x * P2) + x * x * x;
-                    if (Mathf.Abs(tx - alpha) < 1E-5) break;
-                    if (tx > alpha) x_max = x;
-                    else x_min = x;
-                }
-                SPLINE_POSITION[i] = coef * ((1.0f - x) * START_TENSION + x) + x * x * x;
-                float y_max = 1.0f;
-                float y, dy;
-                while (true)
-                {
-                    y = y_min + (y_max - y_min) / 2.0f;
-                    coef = 3.0f * y * (1.0f - y);
-                    dy = coef * ((1.0f - y) * START_TENSION + y) + y * y * y;
-                    if (Mathf.Abs(dy - alpha) < 1E-5) break;
-                    if (dy > alpha) y_max = y;
-                    else y_min = y;
-                }
-                SPLINE_TIME[i] = coef * ((1.0f - y) * P1 + y * P2) + y * y * y;
-            }
-            SPLINE_POSITION[NB_SAMPLES] = SPLINE_TIME[NB_SAMPLES] = 1.0f;
-
-            mPpi = GetDPI();
-            mDeceleration = ComputeDeceleration(m_FlingFriction);
-
-            mPhysicalCoeff = ComputeDeceleration(0.84f);
-        }
-
-        /// <summary>
-        /// Create a scroller with the specified friction, default min/max durations, and default interpolator.
-        /// </summary>
-        /// <param name="friction">Controls how quickly or slowly fling animations come to a stop.</param>
-        public Scroller(float friction) : this(friction, DEFAULT_MIN_DURATION, DEFAULT_MAX_DURATION, null) { }
-
-        /// <summary>
-        /// Create a scroller with the specified interpolator, default friction, and default min/max durations.
-        /// If the interpolator is null the default interpolator will be used.
-        /// </summary>
-        /// <param name="interpolator">Controls how the scroller animates scrolling.</param>
-        public Scroller(Interpolator interpolator) : this(DEFAULT_FLING_FRICTION, DEFAULT_MIN_DURATION, DEFAULT_MAX_DURATION, interpolator) { }
-
-        /// <summary>
-        /// Create a scroller with the specified min/max durations, default friction, and default interpolator.
-        /// </summary>
-        /// <param name="minDuration">The minimum amount of time in milliseconds any animation will take.</param>
-        /// <param name="maxDuration">The maximum amount of time any animation will take.</param>
-        public Scroller(int minDuration, int maxDuration) : this(DEFAULT_FLING_FRICTION, minDuration, maxDuration, null) { }
-
-        /// <summary>
-        /// Create a scroller with the specified friction, specified interpolator, and default min/max durations.
-        /// If the interpolator is null the default interpolator will be used.
-        /// </summary>
-        /// <param name="friction">Controls how quickly or slowly fling animations come to a stop.</param>
-        /// <param name="interpolator">Controls how the scroller animates scrolling.</param>
-        public Scroller(float friction, Interpolator interpolator) : this(DEFAULT_FLING_FRICTION, DEFAULT_MIN_DURATION, DEFAULT_MAX_DURATION, interpolator) { }
-
-        /// <summary>
-        /// Create a scroller with the specified friction, specified min/max durations, and default interpolator.
-        /// </summary>
-        /// <param name="friction">Controls how quickly or slowly fling animations come to a stop.</param>
-        /// <param name="minDuration">The minimum amount of time in milliseconds any animation will take.</param>
-        /// <param name="maxDuration">The maximum amount of time in milliseconds any animation will take.</param>
-        public Scroller(float friction, int minDuration, int maxDuration) : this(friction, minDuration, maxDuration, null) { }
-
-        /// <summary>
-        /// Create a scroller with the specified min/max durations and specified interpolator.
-        /// If the interpolator is null the default interpolator will be used.
-        /// </summary>
-        /// <param name="minDuration">The minimum amount of time in milliseconds any animation will take.</param>
-        /// <param name="maxDuration">The maximum amount of time in milliseconds any animation will take.</param>
-        /// <param name="interpolator">Controls how the scroller animates scrolling.</param>
-        public Scroller(int minDuration, int maxDuration, Interpolator interpolator) : this(DEFAULT_FLING_FRICTION, minDuration, maxDuration, interpolator) { }
-
-        /// <summary>
-        /// Create a scroller with the specified friction, min/max durations, and interpolator.
-        /// If the interpolator is null the default interpolator will be used.
-        /// </summary>
-        /// <param name="friction">Controls how quickly or slowly fling animations come to a stop.</param>
-        /// <param name="minDuration">The minimum amount of time in milliseconds any animation will take.</param>
-        /// <param name="maxDuration">The maximum amount of time in milliseconds any animation will take.</param>
-        /// <param name="interpolator">Controls how the scroller animates scrolling.</param>
-        public Scroller(float friction, int minDuration, int maxDuration, Interpolator interpolator) : this()
-        {
-            m_FlingFriction = friction;
-            m_MinDuration = minDuration;
-            m_MaxDuration = maxDuration;
-            if (interpolator != null)
-            {
-                m_Interpolator = interpolator;
-            }
-        }
-
-        /// <summary>
-        /// Returns the scroller's interpolator. The interpolator modifies how scrolling is animated.
-        /// </summary>
-        public Interpolator interpolator
+        public bool isScrolling
         {
             get
             {
-                return m_Interpolator;
+                return m_Mode == Mode.Scrolling && !m_Finished;
             }
         }
 
-        /// <summary>
-        /// Returns the scroller's friction. The friction controls how quickly or slowly fling animations come to a stop.
-        /// </summary>
-        public float friction
+        public bool isFlinging
         {
             get
             {
-                return m_FlingFriction;
+                return m_Mode == Mode.Flinging && !m_Finished;
             }
         }
 
-        /// <summary>
-        /// Returns the minimum duration, in miliseconds, for all animations, scroll and fling.
-        /// </summary>
-        public int minDuration
-        {
-            get
-            {
-                return m_MinDuration;
-            }
-        }
-
-        /// <summary>
-        /// Returns the maximum duration, in miliseconds, for all animations, scroll and fling.
-        /// </summary>
-        public int maxDuraiton
-        {
-            get
-            {
-                return m_MaxDuration;
-            }
-        }
-
-        /// <summary>
-        /// Returns the current position in the scroll. Before calling this it is best to call ComputeScrollOffset() if you are looking for up-to-date data.
-        /// </summary>
-        public Vector2 currentPosition
-        {
-            get
-            {
-                return new Vector2(m_CurrX, m_CurrY);
-            }
-        }
-
-        /// <summary>
-        /// Returns the start position of the scroll.
-        /// </summary>
-        public Vector2 startPosition
-        {
-            get
-            {
-                return new Vector2(m_StartX, m_StartY);
-            }
-        }
-
-        /// <summary>
-        /// Returns the final position of the scroll.
-        /// </summary>
-        public Vector2 finalPosition
-        {
-            get
-            {
-                return new Vector2(m_FinalX, m_FinalY);
-            }
-        }
-
-        /// <summary>
-        /// Returns the total duration of the latest animation.
-        /// </summary>
-        public int durationOfLatestAnimation
-        {
-            get
-            {
-                return m_Duration;
-            }
-        }
-
-        /// <summary>
-        /// Returns the amount of time since the start of the latest animation.
-        /// </summary>
-        public int timePassedSinceStartOfAnimation
-        {
-            get
-            {
-                return (int)(Time.time * SECONDS_TO_MILLIS - m_StartTime);
-            }
-        }
-
-        /// <summary>
-        /// Returns the current velocity of the scroll.
-        /// </summary>
-        public float currentVelocity
-        {
-            get
-            {
-                return m_Mode == Mode.Flinging ? m_CurrVelocity : m_Velocity - mDeceleration * timePassedSinceStartOfAnimation / 2000.0f;
-            }
-        }
-
-        /// <summary>
-        /// Returns if the latest animation is finished.
-        /// </summary>
         public bool isFinished
         {
             get
@@ -300,133 +44,316 @@ namespace UnityEngine.UI.ScrollSnaps
             }
         }
 
-        /// <summary>
-        /// Returns if true if the scroller is currently animating a fling.
-        /// </summary>
-        public bool isFlinging
+        public Interpolator interpolator
         {
             get
             {
-                return m_Mode == Mode.Flinging && !isFinished;
+                return m_Interpolator;
             }
         }
 
-        /// <summary>
-        /// Returns true if the scroller is currently animating a scroll.
-        /// </summary>
-        public bool isScrolling
+        public Vector2 startPosition
         {
             get
             {
-                return m_Mode == Mode.Scrolling && !isFinished;
+                return m_StartPosition;
             }
         }
 
-        /// <summary> 
-        /// Set the final position on the X axis, of the current animation.
-        /// </summary>
-        /// <param name="newX">The new position on the X axis.</param>
-        public void SetFinalX(int newX)
+        public Vector2 finalPosition
         {
-            m_FinalX = newX;
-            m_DeltaX = m_FinalX - m_StartX;
-            m_Finished = false;
+            get
+            {
+                return m_FinalPosition;
+            }
+        }
+
+        public Vector2 currentPosition
+        {
+            get
+            {
+                return m_CurrentPosition;
+            }
+        }
+
+        public Vector2 currentVelocity
+        {
+            get
+            {
+                return m_CurrentVelocity;
+            }
+        }
+
+        public float durationOfLatestAnimation
+        {
+            get
+            {
+                return m_Duration;
+            }
+        }
+
+        public float timePassedSinceStartOfAnimation
+        {
+            get
+            {
+                return Time.time - m_StartTime;
+            }
+        }
+
+        private float timeSinceLastCompute
+        {
+            get
+            {
+                return Time.time - m_LastComputeTime;
+            }
+        }
+
+
+        private Mode m_Mode;
+        private bool m_Finished = true;
+
+        private Interpolator m_Interpolator = new ViscousFluidInterpolator();
+
+        private Vector2 m_StartPosition;
+        private Vector2 m_FinalPosition;
+        private Vector2 m_CurrentPosition;
+        private Vector2 m_MinPosition;
+        private Vector2 m_MaxPosition;
+
+        private Vector2 m_MovementDelta;
+        private Vector2 m_CurrentVelocity;
+
+        private float m_Duration;
+        private float m_DurationReciprocal;
+        private float m_DecelerationRate;
+
+        private float m_StartTime;
+        private float m_LastComputeTime;
+
+        private Vector2 MIN_VECTOR = new Vector2(float.MinValue, float.MinValue);
+        private Vector2 MAX_VECTOR = new Vector2(float.MaxValue, float.MaxValue);
+        public float DEFAULT_DECELERATION = 0.135f;
+        public float DEFAULT_DURATION = .25f;
+
+        #endregion
+
+        #region Animation Logic
+
+        public Scroller() { }
+
+        /// <summary>
+        /// Calculates how the movement delta based on the velocity at the start of the animation and the deceleration rate.
+        /// </summary>
+        /// <param name="startVelocity">The velocity at the start of the animation.</param>
+        /// <param name="decelerationRate">The deceleration rate of the velocity.</param>
+        /// <returns></returns>
+        public float CalculateMovementDelta(float startVelocity, float decelerationRate)
+        {
+            return (1 - startVelocity) / Mathf.Log(decelerationRate);
         }
 
         /// <summary>
-        /// Set the final position on the Y axis, of the current animation.
+        /// Calculates the Deceleration rate based on the velocity at the start of the animation and how far you want the animation to move.
         /// </summary>
-        /// <param name="newY">The new position on the Y axis.</param>
-        public void SetFinalY(int newY)
+        /// <param name="startVelocity">The velocity at the start of the animation.</param>
+        /// <param name="movementDelta"></param>
+        /// <returns></returns>
+        public float CalculateDecelerationRate(float startVelocity, float movementDelta)
         {
-            m_FinalY = newY;
-            m_DeltaY = m_FinalY - m_StartY;
-            m_Finished = false;
+            return Mathf.Exp((1 - startVelocity) / movementDelta);
         }
 
         /// <summary>
-        /// Set the final position of the current animation.
+        /// Calculates the duration based on the velocity at the start of the animation and the deceration rate.
         /// </summary>
-        /// <param name="newPos">The new final position.</param>
-        public void SetFinalPosition(Vector2 newPos)
+        /// <param name="startVelocity">The velocity at the start of the animation.</param>
+        /// <param name="decelerationRate">The deceleration rate of the velocity.</param>
+        /// <returns></returns>
+        public float CalculateDuration(float startVelocity, float decelerationRate)
         {
-            m_FinalX = (int)newPos.x;
-            m_FinalY = (int)newPos.y;
-            m_DeltaX = m_FinalX - m_StartX;
-            m_DeltaY = m_FinalY - m_StartY;
-            m_Finished = false;
+            return Mathf.Log(1 / startVelocity) / Mathf.Log(decelerationRate);
         }
 
         /// <summary>
-        /// Shifts the start and end positions of the animation by the offset, does not affect the duration or speed.
+        /// Starts a fling animation based on the Start Position and Velocity. If doFlyWheel is true the velocity will be added to the current velocity of any animations. The deceleration rate will be set to default (0.135).
         /// </summary>
+        /// <param name="startPosition">The start position of the animation.</param>
+        /// <param name="velocity">The start velocity of the animation.</param>
+        /// <param name="doFlyWheel">If true the velocity will be added to the current velocity of any animation.</param>
+        public void StartFling(Vector2 startPosition, Vector2 velocity, bool doFlyWheel)
+        {
+            StartFling(startPosition, velocity, doFlyWheel, DEFAULT_DECELERATION);
+        }
+
+        /// <summary>
+        /// Starts a fling animation based on the Start Position, Velocity, and Deceleration Rate. If doFlyWheel is true the velocity will be added to the current velocity of any animations. 
+        /// </summary>
+        /// <param name="startPosition">The start position of the animation.</param>
+        /// <param name="velocity">The start velocity of the animation.</param>
+        /// <param name="doFlyWheel">If true the velocity will be added to the current velocity of any animations.</param>
+        /// <param name="decelerationRate">The deceleration rate of the velocity.</param>
+        public void StartFling(Vector2 startPosition, Vector2 velocity, bool doFlyWheel, float decelerationRate)
+        {
+            StartFling(startPosition, velocity, doFlyWheel, decelerationRate, MIN_VECTOR, MAX_VECTOR);
+        }
+
+        /// <summary>
+        /// Starts a fling animation based on the Start Position, Velocity, and Deceleration Rate. The animation will not go beyond the Min Pos or Max Pos. If doFlyWheel is true the velocity will be added to the current velocity of any animations.
+        /// </summary>
+        /// <param name="startPosition">The start position of the animation.</param>
+        /// <param name="velocity">The start velocity of the animation.</param>
+        /// <param name="doFlyWheel">If true the velocity will be added to the current velocity of any animations.</param>
+        /// <param name="decelerationRate">The deceleration rate of the velocity.</param>
+        /// <param name="minPos">The minimum position the animation will not go beyond.</param>
+        /// <param name="maxPos">The maximum position th animation will not go beyond.</param>
+        public void StartFling(Vector2 startPosition, Vector2 velocity, bool doFlyWheel, float decelerationRate, Vector2 minPos, Vector2 maxPos)
+        {
+            if (doFlyWheel && Mathf.Sign(m_CurrentVelocity.x) == Mathf.Sign(velocity.x) && Mathf.Sign(m_CurrentVelocity.y) == Mathf.Sign(velocity.y))
+            {
+                velocity += m_CurrentVelocity;
+            }
+
+            decelerationRate = Mathf.Clamp(decelerationRate, 0, 1 - Mathf.Epsilon);
+
+            m_Mode = Mode.Flinging;
+            m_Finished = false;
+
+            m_Duration = CalculateDuration(velocity.magnitude, decelerationRate);
+            m_DurationReciprocal = 1 / m_Duration;
+            m_StartTime = Time.time;
+            m_LastComputeTime = Time.time;
+
+            m_MinPosition = minPos;
+            m_MaxPosition = maxPos;
+
+            m_StartPosition = startPosition;
+            m_CurrentPosition = m_StartPosition;
+            m_FinalPosition = new Vector2(m_StartPosition.x + CalculateMovementDelta(velocity.x, decelerationRate), m_StartPosition.y + CalculateMovementDelta(velocity.y, decelerationRate));
+            m_FinalPosition.x = Mathf.Clamp(m_FinalPosition.x, m_MinPosition.x, m_MaxPosition.x);
+            m_FinalPosition.y = Mathf.Clamp(m_FinalPosition.y, m_MinPosition.y, m_MaxPosition.y);
+            m_MovementDelta = m_FinalPosition - m_StartPosition;
+
+            m_CurrentVelocity = velocity;
+            m_DecelerationRate = decelerationRate;
+        }
+
+        /// <summary>
+        /// Starts a scroll animation based on the Start Position and Final Position. The duration will be set to default (.25). The interpolator will be set to default (Viscous Fluid).
+        /// </summary>
+        /// <param name="startPosition">The start position of the animation.</param>
+        /// <param name="finalPosition">The final position of the animation.</param>
+        public void StartScroll(Vector2 startPosition, Vector2 finalPosition)
+        {
+            StartScroll(startPosition, finalPosition, DEFAULT_DURATION);
+        }
+
+        /// <summary>
+        /// Starts a scroll animation based on the Start Position, Final Position, and Duration. The interpolator will be set to default (Viscous Fluid).
+        /// </summary>
+        /// <param name="startPosition">The start position of the animation.</param>
+        /// <param name="finalPosition">The final position of the animation.</param>
+        /// <param name="duration">The duration of the animation in seconds.</param>
+        public void StartScroll(Vector2 startPosition, Vector2 finalPosition, float duration)
+        {
+            StartScroll(startPosition, finalPosition, duration, new ViscousFluidInterpolator());
+        }
+
+        /// <summary>
+        /// Starts a scroll animation based on the Start Positoin, Final Position, Duration, and Interpolator.
+        /// </summary>
+        /// <param name="startPosition">The start position of the animation.</param>
+        /// <param name="finalPosition">The final position of the animation.</param>
+        /// <param name="duration">The duration of the animation in seconds.</param>
+        /// <param name="interpolator">An interpolator that modifies the animation.</param>
+        public void StartScroll(Vector2 startPosition, Vector2 finalPosition, float duration, Interpolator interpolator)
+        {
+            if (interpolator == null)
+            {
+                interpolator = new ViscousFluidInterpolator();
+            }
+
+            m_Mode = Mode.Scrolling;
+            m_Finished = false;
+            m_Interpolator = interpolator;
+
+            m_Duration = duration;
+            m_DurationReciprocal = 1 / m_Duration;
+            m_StartTime = Time.time;
+            m_LastComputeTime = Time.time;
+
+            m_StartPosition = startPosition;
+            m_CurrentPosition = m_StartPosition;
+            m_FinalPosition = finalPosition;
+            m_MovementDelta = m_FinalPosition - m_StartPosition;
+
+            m_CurrentVelocity = m_MovementDelta / m_Duration; //average velocity
+        }
+
+        /// <summary>
+        /// Shifts the start and end points of scroll animations by the offset.
+        /// </summary>
+        /// <param name="offset">The amount to shift the scroll animation by.</param>
         public void ShiftAnimation(Vector2 offset)
         {
-            m_StartX = m_StartX + (int)offset.x;
-            m_StartY = m_StartY + (int)offset.y;
-            m_FinalX = m_FinalX + (int)offset.x;
-            m_FinalY = m_FinalY + (int)offset.y;
+            m_StartPosition += offset;
+            m_CurrentPosition += offset;
+            m_FinalPosition += offset;
         }
 
         /// <summary>
-        /// Extend the scroll animation. This allows the running animation to scroll further and longer in combination with SetFinalPosition().
+        /// Stops the animation.
         /// </summary>
-        /// <param name="extendMS">Additional time to add to the animation in milliseconds.</param>
-        public void ExtendDuration(int extendMS)
+        public void ForceFinish()
         {
-            int passed = timePassedSinceStartOfAnimation;
-            m_Duration = Mathf.Clamp(passed + extendMS, m_MinDuration, m_MaxDuration);
-            m_DurationReciprocal = 1.0f / m_Duration;
-            m_Finished = false;
+            m_Finished = true;
         }
 
         /// <summary>
-        /// Call this when you want to know the new location.
+        /// Stops the animation and sets the current position to the end position of the animation.
         /// </summary>
-        /// <returns>Returns true if the animation is not done yet.</returns>
+        public void AbortAnimation()
+        {
+            m_CurrentPosition = m_FinalPosition;
+            m_Finished = true;
+        }
+
+        /// <summary>
+        /// Updates the current position of the animation.
+        /// </summary>
+        /// <returns>Returns true if the animation is animating.</returns>
         public bool ComputeScrollOffset()
         {
             if (m_Finished)
             {
                 return false;
             }
-            int timePassed = timePassedSinceStartOfAnimation;
 
-            if (timePassed < m_Duration)
+            if (timePassedSinceStartOfAnimation < m_Duration)
             {
                 switch (m_Mode)
                 {
                     case Mode.Scrolling:
-                        float x = m_Interpolator.GetInterpolation(timePassed * m_DurationReciprocal);
-                        m_CurrX = (int)(m_StartX + Mathf.Round(x * m_DeltaX));
-                        m_CurrY = (int)(m_StartY + Mathf.Round(x * m_DeltaY));
+                        float x = m_Interpolator.GetInterpolation(timePassedSinceStartOfAnimation * m_DurationReciprocal);
+                        m_CurrentPosition = m_StartPosition + (x * m_MovementDelta);
                         break;
                     case Mode.Flinging:
-                        float t = (float)timePassed / m_Duration;
-                        int index = (int)(NB_SAMPLES * t);
-                        float distanceCoef = 1f;
-                        float velocityCoef = 0f;
-                        if (index < NB_SAMPLES)
+                        Vector2 prevVelocity = m_CurrentVelocity;
+                        m_CurrentVelocity *= Mathf.Pow(m_DecelerationRate, timeSinceLastCompute);
+                        Vector2 avgVelocity = m_CurrentVelocity + (prevVelocity - m_CurrentVelocity) / 2;
+
+                        if (m_CurrentVelocity.x < 1)
                         {
-                            float t_inf = (float)index / NB_SAMPLES;
-                            float t_sup = (float)(index + 1) / NB_SAMPLES;
-                            float d_inf = SPLINE_POSITION[index];
-                            float d_sup = SPLINE_POSITION[index + 1];
-                            velocityCoef = (d_sup - d_inf) / (t_sup - t_inf);
-                            distanceCoef = d_inf + (t - t_inf) * velocityCoef;
+                            m_CurrentVelocity.x = 0;
                         }
-                        m_CurrVelocity = velocityCoef * m_Distance / m_Duration * 1000.0f;
+                        if (m_CurrentVelocity.y < 1)
+                        {
+                            m_CurrentVelocity.y = 0;
+                        }
 
-                        m_CurrX = (int)(m_StartX + Mathf.Round(distanceCoef * (m_FinalX - m_StartX)));
-                        // Pin to mMinX <= mCurrX <= mMaxX
-                        m_CurrX = Mathf.Min(m_CurrX, m_MaxX);
-                        m_CurrX = Mathf.Max(m_CurrX, m_MinX);
-
-                        m_CurrY = (int)(m_StartY + Mathf.Round(distanceCoef * (m_FinalY - m_StartY)));
-                        // Pin to mMinY <= mCurrY <= mMaxY
-                        m_CurrY = Mathf.Min(m_CurrY, m_MaxY);
-                        m_CurrY = Mathf.Max(m_CurrY, m_MinY);
-                        if (m_CurrX == m_FinalX && m_CurrY == m_FinalY)
+                        m_CurrentPosition += avgVelocity * timeSinceLastCompute;
+                        m_CurrentPosition.x = Mathf.Clamp(m_CurrentPosition.x, m_MinPosition.x, m_MaxPosition.x);
+                        m_CurrentPosition.y = Mathf.Clamp(m_CurrentPosition.y, m_MinPosition.y, m_MaxPosition.y);
+                        if (m_CurrentPosition == m_FinalPosition)
                         {
                             m_Finished = true;
                         }
@@ -435,184 +362,15 @@ namespace UnityEngine.UI.ScrollSnaps
             }
             else
             {
-                m_CurrX = m_FinalX;
-                m_CurrY = m_FinalY;
+                m_CurrentPosition = m_FinalPosition;
                 m_Finished = true;
             }
+
+            m_LastComputeTime = Time.time;
             return true;
         }
 
-        /// <summary>
-        /// Start scrolling by providing a start position and an end position, the duration will be the default value of 250 milliseconds.
-        /// </summary>
-        public void StartScroll(Vector2 startPos, Vector2 endPos)
-        {
-            StartScroll((int)startPos.x, (int)startPos.y, (int)endPos.x - (int)startPos.x, (int)endPos.y - (int)startPos.y, DEFAULT_DURATION);
-        }
-
-        /// <summary>
-        /// Start scrolling by providing a start position, an end position, and the duration of the scroll in milliseconds.
-        /// </summary>
-        /// <param name="duration">The duration of the scroll in milliseconds.</param>
-        public void StartScroll(Vector2 startPos, Vector2 endPos, int duration)
-        {
-            StartScroll((int)startPos.x, (int)startPos.y, (int)endPos.x - (int)startPos.x, (int)endPos.y - (int)startPos.y, duration);
-        }
-
-        /// <summary>
-        /// Start scrolling by providing a start position, the movement delta, and the duration of the scroll in milliseconds.
-        /// </summary>
-        /// <param name="startX">Start X position.</param>
-        /// <param name="startY">Start Y position.</param>
-        /// <param name="dx">Movement delta on the x axis.</param>
-        /// <param name="dy">Movement delta on the y axis.</param>
-        /// <param name="duration">The duration of the scroll in milliseconds.</param>
-        public void StartScroll(int startX, int startY, int dx, int dy, int duration)
-        {
-            m_Mode = Mode.Scrolling;
-            m_Finished = false;
-            m_Duration = Mathf.Clamp(duration, m_MinDuration, m_MaxDuration);
-            m_StartTime = Time.time * SECONDS_TO_MILLIS;
-            m_StartX = startX;
-            m_StartY = startY;
-            m_FinalX = startX + dx;
-            m_FinalY = startY + dy;
-            m_DeltaX = dx;
-            m_DeltaY = dy;
-            m_DurationReciprocal = 1.0f / (float)m_Duration;
-        }
-
-        /// <summary>
-        /// Start scrolling based on a velocity. The distance traveled will depend on the velocity.
-        /// </summary>
-        /// <param name="startPos">The initial velocity in units per second.</param>
-        public void Fling(Vector2 startPos, Vector2 velocity)
-        {
-            Fling((int)startPos.x, (int)startPos.y, (int)velocity.x, (int)velocity.y, int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
-        }
-
-        /// <summary>
-        /// Start scrolling based on a velocity. The distance traveled will depend on the velocity.
-        /// </summary>
-        /// <param name="velocity">The initial velocity in units per second.</param>
-        /// <param name="minPos">The scroller will not scroll past this point.</param>
-        /// <param name="maxPos">The scroller will not scroll past this point.</param>
-        public void Fling(Vector2 startPos, Vector2 velocity, Vector2 minPos, Vector2 maxPos)
-        {
-            Fling((int)startPos.x, (int)startPos.y, (int)velocity.x, (int)velocity.y, (int)minPos.x, (int)minPos.y, (int)maxPos.x, (int)maxPos.y);
-        }
-
-        /// <summary>
-        /// Start scrolling based on velocity. THe distance traveled will depend on the velocity.
-        /// </summary>
-        /// <param name="startX">Start X position.</param>
-        /// <param name="startY">Start Y position.</param>
-        /// <param name="velocityX">The initial velocity on the x axis in units per second.</param>
-        /// <param name="velocityY">The initial velocity on the y axis in units per second.</param>
-        /// <param name="minX">The scroller will not scroll past this point.</param>
-        /// <param name="minY">The scroller will not scroll past this point.</param>
-        /// <param name="maxX">The scroller will not scroll past this point.</param>
-        /// <param name="maxY">The scroller will not scroll past this point.</param>
-        public void Fling(int startX, int startY, int velocityX, int velocityY,
-            int minX, int minY, int maxX, int maxY)
-        {
-            m_Mode = Mode.Flinging;
-            m_Finished = false;
-            float velocity = Hypot(velocityX, velocityY);
-
-            m_Velocity = velocity;
-            m_Duration = Mathf.Clamp(GetSplineFlingDuration(velocity), m_MinDuration, m_MaxDuration);
-            m_StartTime = Time.time * SECONDS_TO_MILLIS;
-            m_StartX = startX;
-            m_StartY = startY;
-            float coeffX = velocity == 0 ? 1.0f : velocityX / velocity;
-            float coeffY = velocity == 0 ? 1.0f : velocityY / velocity;
-            float totalDistance = GetSplineFlingDistance(velocity);
-            m_Distance = (int)(totalDistance * Mathf.Sign(velocity));
-
-            m_MinX = minX;
-            m_MaxX = maxX;
-            m_MinY = minY;
-            m_MaxY = maxY;
-            m_FinalX = startX + (int)Mathf.Round(totalDistance * coeffX);
-            // Pin to mMinX <= mFinalX <= mMaxX
-            m_FinalX = Mathf.Min(m_FinalX, m_MaxX);
-            m_FinalX = Mathf.Max(m_FinalX, m_MinX);
-
-            m_FinalY = startY + (int)Mathf.Round(totalDistance * coeffY);
-            // Pin to mMinY <= mFinalY <= mMaxY
-            m_FinalY = Mathf.Min(m_FinalY, m_MaxY);
-            m_FinalY = Mathf.Max(m_FinalY, m_MinY);
-        }
-
-        private float ComputeDeceleration(float friction)
-        {
-            return 9.80665f               //gravity earth g (m/s^2)
-                          * 39.37f               // inch/meter
-                          * mPpi                 // pixels per inch
-                          * friction;
-        }
-
-        private float GetSplineDeceleration(float velocity)
-        {
-            return Mathf.Log(INFLEXION * Mathf.Abs(velocity) / (m_FlingFriction * mPhysicalCoeff));
-        }
-
-        private int GetSplineFlingDuration(float velocity)
-        {
-            float l = GetSplineDeceleration(velocity);
-            float decelMinusOne = DECELERATION_RATE - 1f;
-            return (int)(1000.0 * Mathf.Exp(l / decelMinusOne));
-        }
-
-        private float GetSplineFlingDistance(float velocity)
-        {
-            float l = GetSplineDeceleration(velocity);
-            float decelMinusOne = DECELERATION_RATE - 1f;
-            return m_FlingFriction * mPhysicalCoeff * Mathf.Exp(DECELERATION_RATE / decelMinusOne * l);
-        }
-
-        /// <summary>
-        /// Stops the animation. Contrary to AbortAnimation() force finishing the animation does *not* move the scroller to the final position.
-        /// </summary>
-        public void ForceFinish()
-        {
-            m_Finished = true;
-        }
-
-        /// <summary>
-        /// Stops the animation. Contrary to ForceFinish() aborting the animation moves the scroller to the final position.
-        /// </summary>
-        public void AbortAnimation()
-        {
-            m_CurrX = m_FinalX;
-            m_CurrY = m_FinalY;
-            m_Finished = true;
-        }
-
-        float GetDPI()
-        {
-            if (Application.platform == RuntimePlatform.Android)
-            {
-                AndroidJavaClass activityClass = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
-                AndroidJavaObject activity = activityClass.GetStatic<AndroidJavaObject>("currentActivity");
-
-                AndroidJavaObject metrics = new AndroidJavaObject("android.util.DisplayMetrics");
-                activity.Call<AndroidJavaObject>("getWindowManager").Call<AndroidJavaObject>("getDefaultDisplay").Call("getMetrics", metrics);
-
-                return (metrics.Get<float>("density") * 160);
-            }
-            else
-            {
-                return Screen.dpi;
-            }
-        }
-
-        private float Hypot(float x, float y)
-        {
-            return Mathf.Sqrt(x * x + y * y);
-        }
-
+        #endregion
 
         #region Interpolators
 
@@ -662,7 +420,7 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             public float GetInterpolation(float input)
             {
-                return (float)(Mathf.Cos((input + 1) * Mathf.PI) / 2.0f) + 0.5f;
+                return (Mathf.Cos((input + 1) * Mathf.PI) / 2.0f) + 0.5f;
             }
         }
 
@@ -763,6 +521,14 @@ namespace UnityEngine.UI.ScrollSnaps
             }
         }
 
+        public class DecelerateAccelerateInterpolator : Interpolator
+        {
+            public float GetInterpolation(float input)
+            {
+                return (Mathf.Tan(((.5f * input) + .75f) * Mathf.PI) / 2) + .5f;
+            }
+        }
+
         public class LinearInterpolator : Interpolator
         {
             public float GetInterpolation(float input)
@@ -794,7 +560,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
         #endregion
     }
-
 
     public interface Interpolator
     {

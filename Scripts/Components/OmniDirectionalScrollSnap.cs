@@ -29,11 +29,12 @@ namespace UnityEngine.UI.ScrollSnaps
 
         public enum InterpolatorType
         {
-            AccelerateDecelerate,
             Accelerate,
+            AccelerateDecelerate,
             Anticipate,
             AnticipateOvershoot,
             Decelerate,
+            DecelerateAccelerate,
             Linear,
             Overshoot,
             ViscousFluid,
@@ -53,10 +54,9 @@ namespace UnityEngine.UI.ScrollSnaps
 
         public enum StartMovementEventType
         {
-            OnBeginDrag,
+            Touch,
             ScrollBar,
             OnScroll,
-            ButtonPress,
             Programmatic
         }
 
@@ -76,28 +76,106 @@ namespace UnityEngine.UI.ScrollSnaps
         public MovementType movementType { get { return m_MovementType; } set { m_MovementType = value; } }
 
         [SerializeField]
-        private bool m_UseVelocity = true;
-        public bool useVelocity { get { return m_UseVelocity; } set { m_UseVelocity = value; } }
+        private bool m_SimulateFlings = true;
+        public bool simulateFlings { get { return m_SimulateFlings; } set { m_SimulateFlings = value; } }
 
         [SerializeField]
+        [Range(0.1f, .999f)]
         private float m_Friction = .25f;
-        public float friction { get { return m_Friction; } }
+        public float friction
+        {
+            get
+            {
+                return m_Friction;
+            }
+            set
+            {
+                if (m_ScrollBarFriction == m_Friction)
+                {
+                    m_ScrollBarFriction = value;
+                }
+                if (m_ScrollFriction == m_Friction)
+                {
+                    m_ScrollFriction = value;
+                }
+
+                m_Friction = value;
+            }
+        }
 
         [SerializeField]
-        private InterpolatorType m_InterpolatorType = InterpolatorType.ViscousFluid;
-        public InterpolatorType interpolator { get { return m_InterpolatorType; } }
+        private InterpolatorType m_InterpolatorType = InterpolatorType.Decelerate;
+        public InterpolatorType interpolator
+        {
+            get
+            {
+                return m_InterpolatorType;
+            }
+            set
+            {
+                if (m_ScrollBarInterpolator == m_InterpolatorType)
+                {
+                    m_ScrollBarInterpolator = value;
+                }
+                if (m_ScrollInterpolator == m_InterpolatorType)
+                {
+                    m_ScrollInterpolator = value;
+                }
+
+                m_InterpolatorType = value;
+            }
+        }
 
         [SerializeField]
         private float m_Tension = 2f;
-        public float tension { get { return m_Tension; } }
+        public float tension
+        {
+            get
+            {
+                return m_Tension;
+            }
+            set
+            {
+                if (m_ScrollBarInterpolator == m_InterpolatorType && m_ScrollBarTension == m_Tension)
+                {
+                    m_ScrollBarTension = value;
+                }
+                if (m_ScrollInterpolator == m_InterpolatorType && m_ScrollTension == m_Tension)
+                {
+                    m_ScrollTension = value;
+                }
+                m_Tension = value;
+            }
+        }
+
+        [SerializeField]
+        private float m_MinDuration = .25f;
+        public float minDuration { get { return m_MinDuration; } set { m_MinDuration = value; } }
+
+        [SerializeField]
+        private float m_MaxDuration = 2;
+        public float maxDuration { get { return m_MaxDuration; }  set { m_MaxDuration = value; } }
+
+        [SerializeField]
+        private bool m_AllowTouchInput = true;
+        public bool allowTouchInput { get { return m_AllowTouchInput; } set { m_AllowTouchInput = value; } }
+
+        [SerializeField]
+        [Range(0.1f, .999f)]
+        private float m_ScrollBarFriction = .8f;
+        public float scrollBarFriction { get { return m_ScrollBarFriction; } set { m_ScrollBarFriction = value; } }
+
+        [SerializeField]
+        private InterpolatorType m_ScrollBarInterpolator = InterpolatorType.Decelerate;
+        public InterpolatorType scrollBarInterpolator { get { return m_ScrollBarInterpolator; } set { m_ScrollBarInterpolator = value; } }
+
+        [SerializeField]
+        private float m_ScrollBarTension = 2f;
+        public float scrollBarTension { get { return m_ScrollBarTension; } set { m_ScrollBarTension = value; } }
 
         [SerializeField]
         private float m_ScrollSensitivity = 1.0f;
         public float scrollSensitivity { get { return m_ScrollSensitivity; } set { m_ScrollSensitivity = value; } }
-
-        [SerializeField]
-        private ScrollWheelDirection m_ScrollWheelDirection = ScrollWheelDirection.Vertical;
-        public ScrollWheelDirection scrollWheelDirection { get { return m_ScrollWheelDirection; } set { m_ScrollWheelDirection = value; } }
 
         [SerializeField]
         private float m_ScrollDelay = .02f;
@@ -114,26 +192,21 @@ namespace UnityEngine.UI.ScrollSnaps
         }
 
         [SerializeField]
-        private int m_MinDurationMillis = 200;
-        public int minDuration { get { return m_MinDurationMillis; } }
+        private ScrollWheelDirection m_ScrollWheelDirection = ScrollWheelDirection.Vertical;
+        public ScrollWheelDirection scrollWheelDirection { get { return m_ScrollWheelDirection; } set { m_ScrollWheelDirection = value; } }
 
         [SerializeField]
-        private int m_MaxDurationMillis = 2000;
-        public int maxDuration { get { return m_MaxDurationMillis; } }
+        [Range(0.1f, .999f)]
+        private float m_ScrollFriction = .8f;
+        public float scrollFriction { get { return m_ScrollFriction; } set { m_ScrollFriction = value; } }
 
         [SerializeField]
-        private int m_ScrollDurationMillis = 250;
-        public int scrollDurationMillis
-        {
-            get
-            {
-                return m_ScrollDurationMillis;
-            }
-            set
-            {
-                m_ScrollDurationMillis = Mathf.Max(value, 1);
-            }
-        }
+        private InterpolatorType m_ScrollInterpolator = InterpolatorType.Decelerate;
+        public InterpolatorType scrollInterpolator { get { return m_ScrollInterpolator; } set { m_ScrollInterpolator = value; } }
+
+        [SerializeField]
+        private float m_ScrollTension = 2f;
+        public float scrollTension { get { return m_ScrollTension; } set { m_ScrollTension = value; } }
 
         [SerializeField]
         private bool m_AddInactiveChildrenToCalculatingFilter;
@@ -158,6 +231,10 @@ namespace UnityEngine.UI.ScrollSnaps
         [SerializeField]
         private List<RectTransform> m_SnapPositionsFilter = new List<RectTransform>();
         public List<RectTransform> snapPositionsFilter { get { return m_SnapPositionsFilter; } set { m_SnapPositionsFilter = value; } }
+
+        [SerializeField]
+        private RectTransform m_StartItem;
+        public RectTransform startItem { get { return m_StartItem; } set { m_StartItem = value; } }
 
         [SerializeField]
         private RectTransform m_Viewport;
@@ -303,27 +380,6 @@ namespace UnityEngine.UI.ScrollSnaps
         private List<RectTransform> m_ChildrenForSnappingFromLeftToRight = new List<RectTransform>();
         public List<RectTransform> snapChildrenLeftToRight { get { return m_ChildrenForSnappingFromLeftToRight; } }
 
-        private Scroller m_Scroller;
-        public Scroller scroller
-        {
-            get
-            {
-                if (m_Scroller == null)
-                {
-                    m_Scroller = new Scroller(m_Friction, m_MinDurationMillis, m_MaxDurationMillis, GetInterpolator());
-                }
-                return m_Scroller;
-            }
-            set
-            {
-                if (m_Scroller != null)
-                {
-                    m_Scroller.AbortAnimation();
-                }
-                m_Scroller = value;
-            }
-        }
-
 
         private string filterWhitelistException = "The {0} is set to whitelist and is either empty or contains an empty object. You probably need to assign a child to the {0} or set the {0} to blacklist.";
         private string availableChildrenListEmptyException = "The Content has no children available for {0}. This is probably because they are all blacklisted. You should check what children you have blacklisted in your item filters and if you have Add Inactive Children checked.";
@@ -331,6 +387,7 @@ namespace UnityEngine.UI.ScrollSnaps
         private string childOutsideValidRegionWarning = "Child: {0} is outside the valid bounds of the content. If this was unintentional move it inside region indicated by the green arrow gizmos. If you see no green arrows turn on Draw Gizmos.";
 
         private DrivenRectTransformTracker m_Tracker;
+        private Scroller m_Scroller = new Scroller();
 
         private List<RectTransform> m_AvailableForCalculating = new List<RectTransform>();
         private List<RectTransform> m_AvailableForSnappingTo = new List<RectTransform>();
@@ -453,10 +510,19 @@ namespace UnityEngine.UI.ScrollSnaps
         }
         #endregion
 
+        #region Temp
+        #endregion
+
         #region SetupScrollSnap
         protected override void OnEnable()
         {
             base.OnEnable();
+
+            RebuildLayoutGroups();
+
+            UpdatePrevData();
+            UpdateLayout();
+            JumpToSnappableChild(m_StartItem);
 
             if (m_HorizontalScrollbar)
             {
@@ -480,12 +546,6 @@ namespace UnityEngine.UI.ScrollSnaps
             }
 
             CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
-
-            RebuildLayoutGroups();
-
-            m_Scroller = new Scroller(m_Friction, m_MinDurationMillis, m_MaxDurationMillis, GetInterpolator());
-
-            UpdatePrevData();
         }
 
         protected override void OnDisable()
@@ -758,7 +818,7 @@ namespace UnityEngine.UI.ScrollSnaps
             if (m_WaitingForEndScrolling && Time.time - m_TimeOfLastScroll > m_ScrollDelay)
             {
                 m_WaitingForEndScrolling = false;
-                DoEndManualMovement();
+                SelectSnapPos(StartMovementEventType.OnScroll);
             }
 
             if (m_Scroller.ComputeScrollOffset())
@@ -798,12 +858,12 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private void ScrollBarPointerUp(PointerEventData ped)
         {
-            DoEndManualMovement();
+            SelectSnapPos(StartMovementEventType.ScrollBar);
         }
 
         public virtual void OnDrag(PointerEventData ped)
         {
-            if (!IsActive())
+            if (!IsActive() || !m_AllowTouchInput)
             {
                 return;
             }
@@ -840,12 +900,12 @@ namespace UnityEngine.UI.ScrollSnaps
 
         public virtual void OnBeginDrag(PointerEventData ped)
         {
-            if (!IsActive())
+            if (!IsActive() || !m_AllowTouchInput)
             {
                 return;
             }
 
-            m_StartMovementEvent.Invoke(StartMovementEventType.OnBeginDrag);
+            m_StartMovementEvent.Invoke(StartMovementEventType.Touch);
 
             UpdateBounds();
 
@@ -859,7 +919,12 @@ namespace UnityEngine.UI.ScrollSnaps
 
         public virtual void OnEndDrag(PointerEventData ped)
         {
-            DoEndManualMovement();
+            if (!IsActive() || !m_AllowTouchInput)
+            {
+                return;
+            }
+
+            SelectSnapPos(StartMovementEventType.Touch);
         }
 
         public virtual void OnScroll(PointerEventData data)
@@ -868,36 +933,31 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 return;
             }
-
-            if (!m_WaitingForEndScrolling)
-            {
-                m_StartMovementEvent.Invoke(StartMovementEventType.OnScroll);
-                m_WaitingForEndScrolling = true;
-                m_Scroller.ForceFinish();
-            }
             m_TimeOfLastScroll = Time.time;
 
             EnsureLayoutHasRebuilt();
             UpdateBounds();
 
+            int axis = (int)m_ScrollWheelDirection;
+            int inverseAxis = 1 - axis;
+
             Vector2 delta = data.scrollDelta;
             // Down is positive for scroll events, while in UI system up is positive.
             delta.y *= -1;
-            if (m_ScrollWheelDirection == ScrollWheelDirection.Vertical)
+            if (Mathf.Abs(delta[inverseAxis]) > Mathf.Abs(delta[axis]))
             {
-                if (Mathf.Abs(delta.x) > Mathf.Abs(delta.y))
-                {
-                    delta.y = delta.x;
-                }
-                delta.x = 0;
+                delta[axis] = delta[inverseAxis];
             }
-            else
+            delta[inverseAxis] = 0;
+
+            if (!m_WaitingForEndScrolling)
             {
-                if (Mathf.Abs(delta.y) > Mathf.Abs(delta.x))
+                m_StartMovementEvent.Invoke(StartMovementEventType.OnScroll);
+                m_WaitingForEndScrolling = true;
+                if (Mathf.Sign(delta[axis]) != Mathf.Sign(m_Velocity[axis]))
                 {
-                    delta.x = delta.y;
+                    m_Scroller.AbortAnimation();
                 }
-                delta.y = 0;
             }
 
             Vector2 position = m_Content.anchoredPosition;
@@ -911,107 +971,72 @@ namespace UnityEngine.UI.ScrollSnaps
             UpdateBounds();
         }
 
-        private void DoEndManualMovement()
+        private void SelectSnapPos(StartMovementEventType eventType)
         {
-            Vector2 offset = CalculateOffset(Vector2.zero);
-            Vector2 snapPos;
-
-            if (!m_UseVelocity)
+            float decelerationRate = 1 - m_Friction;
+            Interpolator interpolator = GetInterpolator(m_InterpolatorType, m_Tension);
+            switch (eventType)
             {
-                snapPos = FindClosestSnapPositionToPosition(m_Content.anchoredPosition, m_Content.anchoredPosition - m_ContentStartPosition);
-                m_Scroller.StartScroll(m_Content.anchoredPosition, snapPos, m_ScrollDurationMillis);
+                case StartMovementEventType.OnScroll:
+                    decelerationRate = 1 - m_ScrollFriction;
+                    interpolator = GetInterpolator(m_ScrollInterpolator, m_ScrollTension);
+                    break;
+                case StartMovementEventType.ScrollBar:
+                    decelerationRate = 1 - m_ScrollBarFriction;
+                    interpolator = GetInterpolator(m_ScrollBarInterpolator, m_ScrollBarTension);
+                    break;
             }
-            else
-            {
-                Vector2 min = new Vector2(m_MinPos.x - offset.x, m_MinPos.y - offset.y);
-                Vector2 max = new Vector2(m_MaxPos.x - offset.x, m_MaxPos.y - offset.y);
+            ImplimentCustomInterpolator(eventType, ref interpolator);
 
-                m_Scroller.Fling(m_Content.anchoredPosition, m_Velocity, min, max);
-                snapPos = FindClosestSnapPositionToPosition(m_Scroller.finalPosition, m_Content.anchoredPosition - m_ContentStartPosition);
-                m_Scroller.SetFinalPosition(snapPos);
+            Vector2 referencePos = m_Content.anchoredPosition;
+            if (m_SimulateFlings)
+            {
+                referencePos.x += Mathf.Sign(m_Velocity.x) * m_Scroller.CalculateMovementDelta(Mathf.Abs(m_Velocity.x), decelerationRate);
+                referencePos.y += Mathf.Sign(m_Velocity.y) * m_Scroller.CalculateMovementDelta(Mathf.Abs(m_Velocity.y), decelerationRate);
             }
+            
+            Vector2 snapPos = FindClosestSnapPositionToPosition(referencePos, m_Velocity);
+            snapPos.x = Mathf.Clamp(snapPos.x, m_MinPos.x, m_MaxPos.x);
+            snapPos.y = Mathf.Clamp(snapPos.y, m_MinPos.y, m_MaxPos.y);
+
+            float decelRate = m_Scroller.CalculateDecelerationRate(m_Velocity.magnitude, Vector2.Distance(snapPos, m_Content.anchoredPosition));
+            float duration = m_Scroller.CalculateDuration(Mathf.Abs(m_Velocity.magnitude), decelRate);
+            duration = Mathf.Clamp(duration, m_MinDuration, m_MaxDuration);
+
+            m_Scroller.StartScroll(m_Content.anchoredPosition, snapPos, duration,interpolator);
 
             m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(snapPos));
         }
         #endregion
 
-        #region ProgrammaticallyScroll
+        #region Public Functions
+
         /// <summary>
-        /// Scrolls to the nearest snap position to the normalized position in the specified duration of time.
+        /// Gets the snappable closest child RectTransform to the normalized position of the content.
         /// </summary>
-        /// <param name="normalizedPos">The reference end position of the content, normalized.</param>
-        /// <param name="durationMillis">The duration of the scroll in milliseconds.</param>
-        public void ScrollToNearestSnapPosToNormalizedPos(Vector2 normalizedPos, int durationMillis)
+        /// <param name="normalizedPosition">Normalized position of the content.</param>
+        /// <returns>Closest snappable child of the content.</returns>
+        public RectTransform GetClosestSnappableChildToNormalizedPosition(Vector2 normalizedPosition)
         {
-            m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
-            m_Scroller.ForceFinish();
-            Vector2 anchoredPos = m_Content.anchoredPosition;
-            SetNormalizedPosition(normalizedPos);
-            Vector2 targetPosition = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
-            m_Scroller.StartScroll(anchoredPos, targetPosition, durationMillis);
-            m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(targetPosition));
+            Vector2 anchorPos = m_Content.anchoredPosition;
+            SetNormalizedPosition(normalizedPosition);
+            Vector2 closestSnapToPosition = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
+            int index = m_SnapPositions.IndexOf(closestSnapToPosition);
+            return m_AvailableForSnappingTo[index];
         }
 
         /// <summary>
-        /// Scrolls to the nearest snap position to the end position in the specified duration of time.
+        /// Gets the closest child RectTransform to the position of the content.
         /// </summary>
-        /// <param name="endPos">The reference end position of the content, in the content's local coordinates.</param>
-        /// <param name="durationMillis">The duration of the scroll in milliseconds.</param>
-        public void ScrollToNearestSnapPosToPos(Vector2 endPos, int durationMillis)
+        /// <param name="position">Position of the content in the content's local space.</param>
+        /// <returns>Closest child of the content.</returns>
+        public RectTransform GetClosestSnappableChildToPosition(Vector2 position)
         {
-            m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
-            m_Scroller.ForceFinish();
-            Vector2 targetPosition = FindClosestSnapPositionToPosition(endPos);
-            m_Scroller.StartScroll(m_Content.anchoredPosition, targetPosition, durationMillis);
-            m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(targetPosition));
+            Vector2 closestSnapToPosition = FindClosestSnapPositionToPosition(position);
+            int index = m_SnapPositions.IndexOf(closestSnapToPosition);
+            return m_AvailableForSnappingTo[index];
         }
 
-        /// <summary>
-        /// Flings to the nearest snap position to the normalized position at the specified velocity.
-        /// </summary>
-        /// <param name="normalizedPos">The reference end position of the content, normalized.</param>
-        /// <param name="velocity">The velocity the scroll snap will move at in units per second, in the content's local space.</param>
-        public void FlingToNearestSnapPosToNormalizedPos(Vector2 normalizedPos, float velocity)
-        {
-            m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
-            m_Scroller.ForceFinish();
-            float velocityX = Mathf.Sqrt((velocity * velocity) / 2);
-            Vector2 velocityV2 = new Vector2(velocityX, velocityX);
-            Vector2 anchoredPos = m_Content.anchoredPosition;
-            SetNormalizedPosition(normalizedPos);
-            Vector2 snapPos = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
-
-            Vector2 offset = CalculateOffset(Vector2.zero);
-            Vector2 min = new Vector2(m_MinPos.x - offset.x, m_MinPos.y - offset.y);
-            Vector2 max = new Vector2(m_MaxPos.x - offset.x, m_MaxPos.y - offset.y);
-            m_Scroller.Fling(m_Content.anchoredPosition, velocityV2, min, max);
-            m_Scroller.SetFinalPosition(snapPos);
-            m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(snapPos));
-        }
-
-        /// <summary>
-        /// Flings to the nearest snap position to the end position at the specified velocity.
-        /// </summary>
-        /// <param name="endPos">The reference end position of the content, in the content's local coordinates.</param>
-        /// <param name="velocity">The velocity the scroll snap will move at in units per second, in the content's local space.</param>
-        public void FlingToNearestSnapPosToPos(Vector2 endPos, float velocity)
-        {
-            m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
-            m_Scroller.ForceFinish();
-            float velocityX = Mathf.Sqrt((velocity * velocity) / 2);
-            Vector2 velocityV2 = new Vector2(velocityX, velocityX);
-            Vector2 snapPos = FindClosestSnapPositionToPosition(endPos);
-
-            Vector2 offset = CalculateOffset(Vector2.zero);
-            Vector2 min = new Vector2(m_MinPos.x - offset.x, m_MinPos.y - offset.y);
-            Vector2 max = new Vector2(m_MaxPos.x - offset.x, m_MaxPos.y - offset.y);
-            m_Scroller.Fling(m_Content.anchoredPosition, velocityV2, min, max);
-            m_Scroller.SetFinalPosition(snapPos);
-            m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(snapPos));
-        }
-        #endregion
-
-        #region Info
         /// <summary>
         /// Gets the normalized position of the content when it is snapped to the child.
         /// </summary>
@@ -1041,29 +1066,84 @@ namespace UnityEngine.UI.ScrollSnaps
         }
 
         /// <summary>
-        /// Gets the closest child RectTransform to the position of the content.
+        /// Sets the content's position to be aligned with the Snap Position of the child. Does not animate just "jumps".
         /// </summary>
-        /// <param name="position">Position of the content in the content's local space.</param>
-        /// <returns>Closest child of the content.</returns>
-        public RectTransform GetClosestSnappableChildToPosition(Vector2 position)
+        /// <param name="child">The child you would like to align the content with.</param>
+        /// <returns>Returns true if the child is a valid (snappable) child.</returns>
+        public bool JumpToSnappableChild(RectTransform child)
         {
-            Vector2 closestSnapToPosition = FindClosestSnapPositionToPosition(position);
-            int index = m_SnapPositions.IndexOf(closestSnapToPosition);
-            return m_AvailableForSnappingTo[index];
+            if (child == null)
+            {
+                return false;
+            }
+
+            Vector2 contentPosition;
+            GetPositionOfChild(child, out contentPosition);
+            if (m_AvailableForSnappingTo.Contains(child))
+            {
+                m_Content.anchoredPosition = contentPosition;
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
-        /// Gets the closest child RectTransform to the normaized position of the content.
+        /// Scrolls to the position of the supplied snappable child.
         /// </summary>
-        /// <param name="normalizedPosition">Normalized position of the content.</param>
-        /// <returns>Closest child of the content.</returns>
-        public RectTransform GetClosestChildToNormalizedPosition(Vector2 normalizedPosition)
+        /// <param name="child">The child you want the Scroll Snap to scroll to.</param>
+        /// <param name="duration">The duration of the scroll in seconds.</param>
+        /// <param name="interpolator">Modifies the animation.</param>
+        /// <returns></returns>
+        public bool ScrollToSnappableChild(RectTransform child, float duration, Interpolator interpolator)
         {
-            Vector2 anchorPos = m_Content.anchoredPosition;
-            SetNormalizedPosition(normalizedPosition);
-            Vector2 closestSnapToPosition = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
-            int index = m_SnapPositions.IndexOf(closestSnapToPosition);
-            return m_AvailableForSnappingTo[index];
+            if(child == null)
+            {
+                return false;
+            }
+
+            Vector2 contentPosition;
+            GetPositionOfChild(child, out contentPosition);
+            if (m_AvailableForSnappingTo.Contains(child))
+            {
+                m_Scroller.StartScroll(m_Content.anchoredPosition, contentPosition, duration, interpolator);
+
+                m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
+                m_TargetItemSelected.Invoke(child);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Scrolls to the nearest snap position to the normalized position in the specified duration of time.
+        /// </summary>
+        /// <param name="normalizedPos">The reference end position of the content, normalized.</param>
+        /// <param name="duration">The duration of the scroll in seconds.</param>
+        /// <param name="interpolator">Modifies the animation.</param>
+        public void ScrollToNearestSnapPosToNormalizedPos(Vector2 normalizedPos, float duration, Interpolator interpolator)
+        {
+            m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
+            m_Scroller.ForceFinish();
+            Vector2 anchoredPos = m_Content.anchoredPosition;
+            SetNormalizedPosition(normalizedPos);
+            Vector2 targetPosition = FindClosestSnapPositionToPosition(m_Content.anchoredPosition);
+            m_Scroller.StartScroll(anchoredPos, targetPosition, duration, interpolator);
+            m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(targetPosition));
+        }
+
+        /// <summary>
+        /// Scrolls to the nearest snap position to the end position in the specified duration of time.
+        /// </summary>
+        /// <param name="endPos">The reference end position of the content, in the content's local coordinates.</param>
+        /// <param name="duration">The duration of the scroll in seconds.</param>
+        /// <param name="interpolator">Modifies the animation.</param>
+        public void ScrollToNearestSnapPosToPos(Vector2 endPos, float duration, Interpolator interpolator)
+        {
+            m_StartMovementEvent.Invoke(StartMovementEventType.Programmatic);
+            m_Scroller.ForceFinish();
+            Vector2 targetPosition = FindClosestSnapPositionToPosition(endPos);
+            m_Scroller.StartScroll(m_Content.anchoredPosition, targetPosition, duration, interpolator);
+            m_TargetItemSelected.Invoke(GetClosestSnappableChildToPosition(targetPosition));
         }
         #endregion
 
@@ -1165,10 +1245,10 @@ namespace UnityEngine.UI.ScrollSnaps
             return Mathf.Sqrt(x * x + y * y);
         }
 
-        private Interpolator GetInterpolator()
+        private Interpolator GetInterpolator(InterpolatorType interpolatorType, float tension)
         {
             Interpolator interpolator = new Scroller.ViscousFluidInterpolator();
-            switch (m_InterpolatorType)
+            switch (interpolatorType)
             {
                 case InterpolatorType.Accelerate:
                     interpolator = new Scroller.AccelerateInterpolator();
@@ -1177,19 +1257,22 @@ namespace UnityEngine.UI.ScrollSnaps
                     interpolator = new Scroller.AccelerateDecelerateInterpolator();
                     break;
                 case InterpolatorType.Anticipate:
-                    interpolator = new Scroller.AnticipateInterpolator(m_Tension);
+                    interpolator = new Scroller.AnticipateInterpolator(tension);
                     break;
                 case InterpolatorType.AnticipateOvershoot:
-                    interpolator = new Scroller.AnticipateOvershootInterpolator(m_Tension);
+                    interpolator = new Scroller.AnticipateOvershootInterpolator(tension);
                     break;
                 case InterpolatorType.Decelerate:
                     interpolator = new Scroller.DecelerateInterpolator();
+                    break;
+                case InterpolatorType.DecelerateAccelerate:
+                    interpolator = new Scroller.DecelerateAccelerateInterpolator();
                     break;
                 case InterpolatorType.Linear:
                     interpolator = new Scroller.LinearInterpolator();
                     break;
                 case InterpolatorType.Overshoot:
-                    interpolator = new Scroller.OvershootInterpolator(m_Tension);
+                    interpolator = new Scroller.OvershootInterpolator(tension);
                     break;
             }
 
@@ -1205,11 +1288,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
         public virtual void SetLayoutHorizontal()
         {
-            if (Application.isPlaying)
-            {
-                m_Tracker.Clear();
-                UpdateLayout();
-            }
         }
 
         public virtual void SetLayoutVertical()
@@ -1420,6 +1498,17 @@ namespace UnityEngine.UI.ScrollSnaps
         }
         #endregion
 
+        #region Virtual Functions
+        /// <summary>
+        /// Override this method to impliment a custom interpolator for non-programatic StartMovementEventTypes.
+        /// Custom interpolators can be directly passed to programatic events.
+        /// This method is called before the OmniDirectional Scroll Snap starts any animations.
+        /// </summary>
+        /// <param name="eventType">The input event for this particular animation.</param>
+        /// <param name="interpolator">The interpolator that you need to set to your custom interpolator</param>
+        public virtual void ImplimentCustomInterpolator(StartMovementEventType eventType, ref Interpolator interpolator) { }
+        #endregion
+
         private void OnDrawGizmos()
         {
             if (m_DrawGizmos)
@@ -1503,25 +1592,18 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private void Validate()
         {
-            m_Friction = Mathf.Max(m_Friction, .001f);
+            m_Friction = Mathf.Clamp(m_Friction, .001f, .999f);
             m_Tension = Mathf.Max(m_Tension, 0);
+            m_MinDuration = Mathf.Max(m_MinDuration, .001f);
+            m_MaxDuration = Math.Max(m_MaxDuration, Mathf.Max(m_MinDuration, .001f));
 
-            m_MinDurationMillis = Mathf.Max(m_MinDurationMillis, 1);
-            m_MaxDurationMillis = Math.Max(m_MaxDurationMillis, Mathf.Max(m_MinDurationMillis, 1));
-            m_ScrollDurationMillis = Mathf.Max(m_ScrollDurationMillis, 1);
+            m_ScrollBarFriction = Mathf.Clamp(m_ScrollBarFriction, .1f, .999f);
+            m_ScrollBarTension = Mathf.Max(m_ScrollBarTension, 0);
 
             m_ScrollSensitivity = Mathf.Max(m_ScrollSensitivity, 0);
             m_ScrollDelay = Mathf.Max(scrollDelay, 0);
-
-            if (m_Scroller != null && (m_Scroller.interpolator != GetInterpolator() || m_Tension != m_PrevTension || m_Friction != m_PrevFriction || m_MinDurationMillis != m_PrevMinDuration || m_MaxDurationMillis != m_PrevMaxDuration))
-            {
-                m_PrevTension = m_Tension;
-                m_PrevFriction = m_Friction;
-                m_PrevMinDuration = m_MinDurationMillis;
-                m_PrevMaxDuration = m_MaxDurationMillis;
-                m_Scroller.AbortAnimation();
-                m_Scroller = new Scroller(m_Friction, m_MinDurationMillis, m_MaxDurationMillis, GetInterpolator());
-            }
+            m_ScrollFriction = Mathf.Clamp(m_ScrollFriction, 1f, .999f);
+            m_ScrollTension = Mathf.Max(m_ScrollTension, 0);
 
             SetDirtyCaching();
         }
