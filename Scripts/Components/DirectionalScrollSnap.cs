@@ -89,7 +89,42 @@ namespace UnityEngine.UI.ScrollSnaps
 
         [SerializeField]
         private RectTransform m_Content;
-        public RectTransform content { get { return m_Content; } set { m_Content = value; } }
+        public RectTransform content
+        {
+            get
+            {
+                return m_Content;
+            }
+            set
+            {
+                m_Content = value;
+
+                if (contentIsHorizonalLayoutGroup)
+                {
+                    m_MovementDirection = MovementDirection.Horizontal;
+                }
+
+                if (contentIsVerticalLayoutGroup)
+                {
+                    m_MovementDirection = MovementDirection.Vertical;
+                }
+
+                if (contentIsLayoutGroup && m_LayoutGroup.enabled)
+                {
+                    RebuildLayoutGroups();
+                }
+                if (contentIsLayoutGroup && Application.isPlaying)
+                {
+                    m_LayoutGroupWasEnabled = m_LayoutGroup.enabled;
+                    m_LayoutGroup.enabled = false;
+                }
+
+                m_CalculateDistances.Clear();
+                m_SnapDistances.Clear();
+                UpdatePrevData();
+                UpdateLayout();
+            }
+        }
 
         [SerializeField]
         private MovementType m_MovementType;
@@ -524,7 +559,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private string filterWhitelistException = "The {0} is set to whitelist and is either empty or contains an empty object. You probably need to assign a child to the {0} or set the {0} to blacklist.";
         private string availableChildrenListEmptyException = "The Content has no children available for {0}. This is probably because they are all blacklisted. You should check what children you have blacklisted in your item filters and if you have Add Inactive Children checked.";
-        private string childOutsideValidRegionWarning = "Child: {0} is outside the valid bounds of the content. If this was unintentional move it inside region indicated by the green arrow gizmos. If you see no green arrows turn on Draw Gizmos.";
 
         private DrivenRectTransformTracker m_Tracker;
         private Scroller m_Scroller = new Scroller();
@@ -699,8 +733,11 @@ namespace UnityEngine.UI.ScrollSnaps
         protected override void OnEnable()
         {
             base.OnEnable();
-
-            RebuildLayoutGroups();
+            
+            if (contentIsLayoutGroup && m_LayoutGroup.enabled)
+            {
+                RebuildLayoutGroups();
+            }
             if (contentIsLayoutGroup && Application.isPlaying)
             {
                 m_LayoutGroupWasEnabled = m_LayoutGroup.enabled;
@@ -878,11 +915,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
                 if (childIsAvailableForCalculating(child))
                 {
-                    Vector3 childLocalViewRect = viewRect.InverseTransformPoint(child.position);
-                    if (childLocalViewRect.x < contentTopLeftLocalViewRect.x || childLocalViewRect.y > contentTopLeftLocalViewRect.y)
-                    {
-                        Debug.LogWarningFormat(this, childOutsideValidRegionWarning, child.name);
-                    }
                     m_AvailableForCalculating.Add(child);
                     if (childIsAvailableForSnappingTo(child))
                     {
@@ -949,23 +981,23 @@ namespace UnityEngine.UI.ScrollSnaps
         {
             UpdateBounds();
             m_ExtraLoopSpace = m_Loop ? (int)(Mathf.Max(m_CalculateDistances.ToArray()) / 2) : 0;
-            float halfViewRect = m_ViewBounds.extents[axis];
-            int paddingStart = (int)(halfViewRect - Mathf.Abs(firstCalculateChild.anchoredPosition[axis])) + m_ExtraLoopSpace;
-            int paddingEnd = (int)(halfViewRect - (m_Content.sizeDelta[axis] - Mathf.Abs(lastCalculateChild.anchoredPosition[axis]))) + m_ExtraLoopSpace;
+            float halfViewRect = movementDirectionMult * m_ViewBounds.extents[axis];
+            int startOffset = (int)(halfViewRect - firstCalculateChild.anchoredPosition[axis]) + (movementDirectionMult * m_ExtraLoopSpace);
+            int endOffset = (int)(halfViewRect - ((movementDirectionMult * m_Content.sizeDelta[axis]) - lastCalculateChild.anchoredPosition[axis])) + (movementDirectionMult * m_ExtraLoopSpace);
 
             if (!Application.isPlaying && contentIsLayoutGroup && m_LayoutGroup.enabled)
             {
                 if (m_MovementDirection == MovementDirection.Horizontal)
                 {
-                    m_LayoutGroup.padding.left = m_LayoutGroup.padding.left + paddingStart;
-                    m_LayoutGroup.padding.right = m_LayoutGroup.padding.right + paddingEnd;
-                    m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x + paddingStart + paddingEnd, m_Content.sizeDelta.y);
+                    m_LayoutGroup.padding.left = m_LayoutGroup.padding.left + startOffset;
+                    m_LayoutGroup.padding.right = m_LayoutGroup.padding.right + endOffset;
+                    m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x + startOffset + endOffset, m_Content.sizeDelta.y);
                 }
                 else
                 {
-                    m_LayoutGroup.padding.top = m_LayoutGroup.padding.top + paddingStart;
-                    m_LayoutGroup.padding.bottom = m_LayoutGroup.padding.bottom + paddingEnd;
-                    m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x, m_Content.sizeDelta.y + paddingStart + paddingEnd);
+                    m_LayoutGroup.padding.top = m_LayoutGroup.padding.top - startOffset;
+                    m_LayoutGroup.padding.bottom = m_LayoutGroup.padding.bottom - endOffset;
+                    m_Content.sizeDelta = new Vector2(m_Content.sizeDelta.x, m_Content.sizeDelta.y - startOffset - endOffset);
                 }
                 RebuildLayoutGroups();
             }
@@ -974,10 +1006,10 @@ namespace UnityEngine.UI.ScrollSnaps
                 foreach (RectTransform child in m_ChildrenForSizeFromStartToEnd)
                 {
                     Vector3 newAnchorPos = child.anchoredPosition;
-                    newAnchorPos[axis] = newAnchorPos[axis] + (paddingStart * movementDirectionMult);
+                    newAnchorPos[axis] = newAnchorPos[axis] + startOffset;
                     child.anchoredPosition = newAnchorPos;
                 }
-                float totalSize = Mathf.Abs(lastCalculateChild.anchoredPosition[axis]) + halfViewRect + m_ExtraLoopSpace;
+                float totalSize = Mathf.Abs(lastCalculateChild.anchoredPosition[axis]) + Mathf.Abs(halfViewRect) + m_ExtraLoopSpace;
                 m_Content.sizeDelta = (movementDirection == MovementDirection.Horizontal) ? new Vector2(totalSize, m_Content.sizeDelta.y) : new Vector2(m_Content.sizeDelta.x, totalSize);
             }
             SetNormalizedPosition(1, 0);
@@ -997,7 +1029,7 @@ namespace UnityEngine.UI.ScrollSnaps
                 float normalizedPosition;
                 GetNormalizedPositionOfChild(child, out normalizedPosition);
                 SetNormalizedPosition(normalizedPosition, axis);
-                m_SnapPositions.Add(RoundVector2ToInts(m_Content.anchoredPosition));
+                m_SnapPositions.Add(m_Content.anchoredPosition);
             }
         }
 
@@ -1371,23 +1403,12 @@ namespace UnityEngine.UI.ScrollSnaps
                         }
                         else
                         {
-                            Vector3 newChildPos = child.anchoredPosition;
-                            newChildPos[axis] = movementDirectionMult * (m_ViewBounds.extents[axis] + m_ExtraLoopSpace);
+                            float movementAmount = m_CalculateDistances[m_CalculateDistances.Count - 1];
+                            totalOffset[axis] -= movementDirectionMult * movementAmount;
+
+                            Vector3 newChildPos = m_ChildrenForSizeFromStartToEnd[LoopIndex(i - 1, m_ChildrenForSizeFromStartToEnd.Count)].anchoredPosition;
+                            newChildPos[axis] -= movementDirectionMult * movementAmount;
                             child.anchoredPosition = newChildPos;
-
-                            float movementAmout = m_CalculateDistances[m_CalculateDistances.Count - 1];
-                            for (int j = 0; j < m_ChildrenForSizeFromStartToEnd.Count; j++)
-                            {
-                                if (i == j)
-                                {
-                                    continue;
-                                }
-
-                                RectTransform siblingBeingMoved = m_ChildrenForSizeFromStartToEnd[j];
-                                Vector2 newSiblingPos = siblingBeingMoved.anchoredPosition;
-                                newSiblingPos[axis] = newSiblingPos[axis] + (movementAmout * movementDirectionMult);
-                                siblingBeingMoved.anchoredPosition = newSiblingPos;
-                            }
 
                             float cacheCalculateDistance = m_CalculateDistances[m_CalculateDistances.Count - 1];
                             m_CalculateDistances.RemoveAt(m_CalculateDistances.Count - 1);
@@ -1413,7 +1434,7 @@ namespace UnityEngine.UI.ScrollSnaps
                         else
                         {
                             float movementAmount = m_CalculateDistances[m_CalculateDistances.Count - 1];
-                            totalOffset[axis] = totalOffset[axis] + (movementAmount * movementDirectionMult);
+                            totalOffset[axis] += movementAmount * movementDirectionMult;
 
                             Vector3 newChildPos = child.anchoredPosition;
                             newChildPos[axis] = m_ChildrenForSizeFromStartToEnd[LoopIndex(i - 1, m_ChildrenForSizeFromStartToEnd.Count)].anchoredPosition[axis] + (movementAmount * movementDirectionMult);
@@ -1682,12 +1703,6 @@ namespace UnityEngine.UI.ScrollSnaps
             m_UpdateSnapPositions = true;
 
             ResetContentPos();
-
-            if (!m_Scroller.isFinished)
-            {
-                m_Scroller.ForceFinish();
-                SelectSnapPos(m_LastInputEvent);
-            }
         }
         #endregion
 
@@ -1877,9 +1892,6 @@ namespace UnityEngine.UI.ScrollSnaps
             Matrix4x4 matrix = Matrix4x4.TRS(m_ContentWorldCorners[1], m_Content.rotation, m_Content.localScale);
             Vector2 posRelativeToContentTopLeft = matrix.inverse.MultiplyPoint3x4(worldPos);
 
-            posRelativeToContentTopLeft.x = Mathf.Max(0, posRelativeToContentTopLeft.x);
-            posRelativeToContentTopLeft.y = Mathf.Min(0, posRelativeToContentTopLeft.y);
-
             SetParentToContent(child);
             child.anchoredPosition = posRelativeToContentTopLeft;
 
@@ -1902,6 +1914,8 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 contentPosition[inverseAxis] = m_Content.anchoredPosition[inverseAxis];
                 m_Content.anchoredPosition = contentPosition;
+                Loop(Direction.TowardsStart);
+                Loop(Direction.TowardsEnd);
                 return true;
             }
             return false;
@@ -1925,6 +1939,8 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 contentPosition[inverseAxis] = m_Content.anchoredPosition[inverseAxis];
                 m_Content.anchoredPosition = contentPosition;
+                Loop(Direction.TowardsStart);
+                Loop(Direction.TowardsEnd);
                 return true;
             }
             return false;
@@ -2529,11 +2545,6 @@ namespace UnityEngine.UI.ScrollSnaps
             return (1 - (1 / ((Mathf.Abs(overStretching) * 0.55f / viewSize) + 1))) * viewSize * Mathf.Sign(overStretching);
         }
 
-        private Vector2 RoundVector2ToInts(Vector2 vector)
-        {
-            return new Vector2((int)vector.x, (int)vector.y);
-        }
-
         private Interpolator GetInterpolator(InterpolatorType interpolatorType, float tension)
         {
             Interpolator interpolator = new Scroller.ViscousFluidInterpolator();
@@ -2969,40 +2980,13 @@ namespace UnityEngine.UI.ScrollSnaps
 
                 Vector3 topDirection = topRightWorld - topLeftWorld;
                 Vector3 leftDirection = bottomLeftWorld - topLeftWorld;
-                Vector3 topEndPoint = topLeftWorld + topDirection.normalized * GetGizmoSize(topLeftWorld);
-                Vector3 leftEndPoint = topLeftWorld + leftDirection.normalized * GetGizmoSize(topLeftWorld);
-                Vector3 perpendicularDirection = Vector3.Cross(topDirection, leftDirection);
-
-                Vector3 arrowDirectionOne = Quaternion.AngleAxis(-135, perpendicularDirection) * leftDirection;
-                Vector3 arrowDirectionTwo = Quaternion.AngleAxis(135, perpendicularDirection) * leftDirection;
-
-                Gizmos.color = Color.green;
-                Gizmos.DrawLine(topLeftWorld, topEndPoint);
-                Gizmos.DrawLine(topLeftWorld, leftEndPoint);
-                Gizmos.DrawRay(leftEndPoint, arrowDirectionOne.normalized * GetGizmoSize(leftEndPoint) * .25f);
-                Gizmos.DrawRay(leftEndPoint, arrowDirectionTwo.normalized * GetGizmoSize(leftEndPoint) * .25f);
-                Gizmos.DrawRay(topEndPoint, -(arrowDirectionOne.normalized * GetGizmoSize(leftEndPoint) * .25f));
-                Gizmos.DrawRay(topEndPoint, arrowDirectionTwo.normalized * GetGizmoSize(leftEndPoint) * .25f);
-
-                //Draw invalid children & snap positions
-                Vector3[] childCorners = new Vector3[4];
-                Vector3 topLeftLocalViewRect = viewRect.InverseTransformPoint(topLeftWorld);
+                
+                //Draw Snap Positions
                 foreach (RectTransform child in m_Content)
                 {
-                    child.GetWorldCorners(childCorners);
-                    Vector3 childLocalViewRect = viewRect.InverseTransformPoint(child.position);
-                    if (childLocalViewRect.x < topLeftLocalViewRect.x || childLocalViewRect.y > topLeftLocalViewRect.y)
-                    {
-                        Gizmos.color = Color.red;
-                        Gizmos.DrawLine(childCorners[1], childCorners[2]);
-                        Gizmos.DrawLine(childCorners[2], childCorners[3]);
-                        Gizmos.DrawLine(childCorners[3], childCorners[0]);
-                        Gizmos.DrawLine(childCorners[0], childCorners[1]);
-                    }
-                    else if (m_AvailableForSnappingTo.Contains(child))
+                    if (m_AvailableForSnappingTo.Contains(child))
                     {
                         Gizmos.color = Color.cyan;
-
                         if (m_MovementDirection == MovementDirection.Horizontal)
                         {
                             Gizmos.DrawRay(child.position, leftDirection.normalized * GetGizmoSize(child.position) * .5f);
