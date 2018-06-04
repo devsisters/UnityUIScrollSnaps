@@ -147,7 +147,7 @@ namespace UnityEngine.UI.ScrollSnaps
             serializedObject.Update();
 
             GUI.enabled = false;
-            EditorGUILayout.ObjectField("Script:", MonoScript.FromMonoBehaviour(scrollSnap), typeof(OmniDirectionalScrollSnap), false);
+            EditorGUILayout.ObjectField("Script", MonoScript.FromMonoBehaviour(scrollSnap), typeof(OmniDirectionalScrollSnap), false);
             GUI.enabled = true;
 
             EditorGUILayout.Space();
