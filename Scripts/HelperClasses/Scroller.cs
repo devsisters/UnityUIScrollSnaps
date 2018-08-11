@@ -3,6 +3,7 @@
 
 namespace UnityEngine.UI.ScrollSnaps
 {
+    [HelpURL("https://bitbucket.org/beksomega/unityuiscrollsnaps/wiki/HelperClasses/Scroller")]
     /// <summary>
     /// This class encapsulates scrolling. You can use scrollers to collect
     /// the data you need to create a scrolling animation, for example, in
