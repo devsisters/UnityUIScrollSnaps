@@ -15,6 +15,7 @@ using UnityEditor;
 
 namespace UnityEngine.UI.ScrollSnaps
 {
+    [HelpURL("https://bitbucket.org/beksomega/unityuiscrollsnaps/wiki/Components/OmniDirectionalScrollSnap")]
     [AddComponentMenu("UI/Scroll Snaps/OmniDirectional Scroll Snap")]
     [ExecuteInEditMode]
     public class OmniDirectionalScrollSnap : UIBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, ICanvasElement, ILayoutGroup, IScrollHandler
