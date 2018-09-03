@@ -12,7 +12,7 @@ These instructions will make the Components in this project available to you ins
 
 ### Download entire repository:
 
-1.	Dowload: [Asset Package](https://bitbucket.org/beksomega/unityuiscrollsnaps/downloads/0.8.1_UnityUIScrollSnaps.unitypackage)
+1.	Dowload: [Asset Package](https://bitbucket.org/beksomega/unityuiscrollsnaps/downloads/0.8.2_UnityUIScrollSnaps.unitypackage)
 2.	Open the Unity project you would like to import your newly downloaded assets into.
 3.	On the top menu bar go to Assets > Import Package > Custom Package.
 4.	Open the downloaded assets.
