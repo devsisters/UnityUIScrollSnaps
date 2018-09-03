@@ -602,7 +602,6 @@ namespace UnityEngine.UI.ScrollSnaps
         private float m_TimeOfLastScroll;
 
         private Camera m_LastPressedCamera;
-        private StartMovementEventType m_LastInputEvent;
 
         [NonSerialized]
         private RectTransform m_Rect;
@@ -1122,7 +1121,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
         private void ScrollBarPointerUp(PointerEventData ped)
         {
-            m_LastPressedCamera = ped.pressEventCamera;
             SelectSnapPos(StartMovementEventType.ScrollBar);
         }
         
@@ -1203,7 +1201,6 @@ namespace UnityEngine.UI.ScrollSnaps
 
             if (!m_WaitingForEndScrolling)
             {
-                m_LastPressedCamera = data.pressEventCamera;
                 m_StartMovementEvent.Invoke(StartMovementEventType.OnScroll);
                 m_WaitingForEndScrolling = true;
                 if (Mathf.Sign(delta[axis]) != Mathf.Sign(m_Velocity[axis]))
@@ -1229,6 +1226,7 @@ namespace UnityEngine.UI.ScrollSnaps
             {
                 return;
             }
+            m_LastPressedCamera = ped.pressEventCamera;
 
             m_StartMovementEvent.Invoke(StartMovementEventType.Touch);
 
@@ -1287,13 +1285,11 @@ namespace UnityEngine.UI.ScrollSnaps
                 return;
             }
 
-            m_LastPressedCamera = ped.pressEventCamera;
             SelectSnapPos(StartMovementEventType.Touch);
         }
 
         private void SelectSnapPos(StartMovementEventType eventType)
         {
-            m_LastInputEvent = eventType;
             float decelerationRate = 1 - m_Friction;
             Interpolator interpolator = GetInterpolator(m_InterpolatorType, m_Tension);
             switch (eventType)
