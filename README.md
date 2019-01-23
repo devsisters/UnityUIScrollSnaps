@@ -6,6 +6,11 @@ This project is about extending the Unity UI system to create components that sc
 2. Components should not rely on vanilla Unity Components like Scroll Rects, they should handle whatever they need to do themselves, to make it easier for the user.
 3. What you see is what you get, when the user is setting up the component in the editor it should look the same as how it will look when they run it.
 
+## Note on Versions
+
+This project is currently in flux because it is moving to a completely rewritten Version 1. All links in this README send you to the latest Version 0 update.
+If you want the latest Version 1 Update head to the [downloads page](https://bitbucket.org/beksomega/unityuiscrollsnaps/downloads/).
+
 ## Getting Started
 
 These instructions will make the Components in this project available to you inside of Unity, and allow you to get started making things.
