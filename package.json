@@ -2,6 +2,6 @@
   "name": "unityuiscrollsnaps",
   "displayName": "UnityUIScrollSnaps",
   "version": "0.8.2",
-  "unity": 2019.1,
+  "unity": "2019.1",
   "description": "UnityUIScrollSnaps"
 }
