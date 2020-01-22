@@ -1,0 +1,14 @@
+{
+  name UnityUIScrollSnaps,
+  displayName UnityUIScrollSnaps,
+  version 0.9.21,
+  unity 2019.1,
+  unityRelease 0f1,
+  dependencies {
+  },
+  description UnityUIScrollSnaps
+  keywords [
+    unity,
+    snap
+  ]
+} 
